@@ -8,21 +8,24 @@ various recommendation features including collaborative filtering,
 content-based filtering, hybrid recommendations, and more.
 
 The application offers a menu-driven interface that allows users to:
-1. Get personalized recommendations for specific users
-2. Find movies similar to a given movie
-3. Get hybrid recommendations combining multiple approaches
-4. Browse popular movies
-5. Filter movies by genre
-6. View user rating histories
-7. Explore the movie and user databases
+1. Login/Register with authentication
+2. Get personalized recommendations for specific users
+3. Find movies similar to a given movie
+4. Get hybrid recommendations combining multiple approaches
+5. Browse popular movies
+6. Filter movies by genre
+7. View user rating histories
+8. Explore the movie and user databases
+9. Manage user account settings
 
 Author: Movie Recommendation System
-Version: 1.0
+Version: 2.0
 """
 
 import sys
+import getpass
 from recommendation_system import MovieRecommendationSystem
-from movie_data import load_all_data
+from auth_system import AuthSystem
 
 def print_header():
     """
@@ -45,15 +48,20 @@ def print_menu():
     recommendation algorithm or data exploration feature.
     """
     print("📋 MAIN MENU:")
-    print("1. Get personalized recommendations for a user")
-    print("2. Get content-based recommendations for a movie")
-    print("3. Get hybrid recommendations")
-    print("4. Show popular movies")
-    print("5. Browse movies by genre")
-    print("6. View user ratings")
-    print("7. List all movies")
-    print("8. List all users")
-    print("9. Exit")
+    print("1. Login")
+    print("2. Register")
+    print("3. Get personalized recommendations for a user")
+    print("4. Get content-based recommendations for a movie")
+    print("5. Get hybrid recommendations")
+    print("6. Show popular movies")
+    print("7. Browse movies by genre")
+    print("8. View user ratings")
+    print("9. List all movies")
+    print("10. List all users")
+    print("11. View my profile")
+    print("12. Change password")
+    print("13. Logout")
+    print("14. Exit")
     print()
 
 def print_movie_list(movies, title="Movies"):
@@ -133,32 +141,142 @@ def get_user_input(prompt, valid_range=None, input_type=int):
         except ValueError:
             print("Please enter a valid number.")
 
-def get_personalized_recommendations(recommender):
+def handle_login(auth_system):
     """
-    Handle personalized recommendations for a specific user.
+    Handle user login process.
+    
+    Args:
+        auth_system: Authentication system instance
+    """
+    print("\n🔐 LOGIN")
+    print("-" * 40)
+    
+    username = input("Username: ").strip()
+    if not username:
+        print("❌ Username cannot be empty!")
+        return
+    
+    password = getpass.getpass("Password: ")
+    if not password:
+        print("❌ Password cannot be empty!")
+        return
+    
+    auth_system.login(username, password)
+
+def handle_register(auth_system):
+    """
+    Handle user registration process.
+    
+    Args:
+        auth_system: Authentication system instance
+    """
+    print("\n📝 REGISTRATION")
+    print("-" * 40)
+    
+    username = input("Username: ").strip()
+    if not username:
+        print("❌ Username cannot be empty!")
+        return
+    
+    password = getpass.getpass("Password: ")
+    if not password:
+        print("❌ Password cannot be empty!")
+        return
+    
+    confirm_password = getpass.getpass("Confirm Password: ")
+    if password != confirm_password:
+        print("❌ Passwords do not match!")
+        return
+    
+    name = input("Full Name: ").strip()
+    if not name:
+        print("❌ Name cannot be empty!")
+        return
+    
+    try:
+        age = int(input("Age: "))
+    except ValueError:
+        print("❌ Age must be a number!")
+        return
+    
+    # Available genres for selection
+    genres = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy', 'Crime', 
+              'Drama', 'Family', 'Fantasy', 'Horror', 'Musical', 'Romance', 
+              'Sci-Fi', 'Thriller', 'War']
+    
+    print("\nAvailable genres:")
+    for i, genre in enumerate(genres, 1):
+        print(f"{i:2d}. {genre}")
+    
+    try:
+        genre_choice = int(input(f"\nSelect preferred genre (1-{len(genres)}): "))
+        if genre_choice < 1 or genre_choice > len(genres):
+            print("❌ Invalid genre selection!")
+            return
+        preferred_genre = genres[genre_choice - 1]
+    except ValueError:
+        print("❌ Invalid genre selection!")
+        return
+    
+    # Register the user
+    if auth_system.register_user(username, password, name, age, preferred_genre):
+        # Automatically log in the newly registered user
+        print("🔄 Automatically logging you in...")
+        auth_system.login(username, password)
+
+def handle_change_password(auth_system):
+    """
+    Handle password change process.
+    
+    Args:
+        auth_system: Authentication system instance
+    """
+    print("\n🔑 CHANGE PASSWORD")
+    print("-" * 40)
+    
+    current_password = getpass.getpass("Current Password: ")
+    if not current_password:
+        print("❌ Current password cannot be empty!")
+        return
+    
+    new_password = getpass.getpass("New Password: ")
+    if not new_password:
+        print("❌ New password cannot be empty!")
+        return
+    
+    confirm_password = getpass.getpass("Confirm New Password: ")
+    if new_password != confirm_password:
+        print("❌ Passwords do not match!")
+        return
+    
+    auth_system.change_password(current_password, new_password)
+
+def get_personalized_recommendations(recommender, auth_system):
+    """
+    Handle personalized recommendations for the logged-in user.
     
     This function implements collaborative filtering by:
-    1. Showing available users with their preferences
-    2. Getting user selection and number of recommendations
+    1. Using the logged-in user's ID
+    2. Getting number of recommendations
     3. Calling the collaborative filtering algorithm
     4. Displaying results
     
     Args:
         recommender (MovieRecommendationSystem): The recommendation system instance
+        auth_system (AuthSystem): The authentication system instance
     """
     print("\n👤 PERSONALIZED RECOMMENDATIONS")
     print("-" * 40)
     
-    # Display available users with their preferences
-    users = recommender.users_df[['user_id', 'name', 'preferred_genre']].to_dict('records')
-    print("Available users:")
-    for user in users:
-        print(f"{user['user_id']:2d}. {user['name']} (Prefers: {user['preferred_genre']})")
-    
-    # Get user selection
-    user_id = get_user_input("\nEnter user ID (or 'q' to quit): ", range(1, 21))
+    # Get the current user's ID
+    user_id = auth_system.get_user_id()
     if user_id is None:
+        print("❌ Could not determine user ID for recommendations.")
         return
+    
+    current_user = auth_system.get_current_user()
+    print(f"Getting recommendations for: {current_user.name} (User ID: {user_id})")
+    print(f"Preferred genre: {current_user.preferred_genre}")
     
     # Get number of recommendations
     n_recommendations = get_user_input("Number of recommendations (1-10): ", range(1, 11))
@@ -167,7 +285,7 @@ def get_personalized_recommendations(recommender):
     
     # Get and display recommendations
     recommendations = recommender.get_collaborative_filtering_recommendations(user_id, n_recommendations)
-    print_movie_list(recommendations, f"Personalized Recommendations for User {user_id}")
+    print_movie_list(recommendations, f"Personalized Recommendations for {current_user.name}")
 
 def get_content_based_recommendations(recommender):
     """
@@ -394,7 +512,7 @@ def main():
     Main application function.
     
     This function:
-    1. Initializes the recommendation system
+    1. Initializes the recommendation system and authentication system
     2. Displays the main menu
     3. Handles user input and navigation
     4. Calls appropriate functions based on user selection
@@ -410,13 +528,25 @@ def main():
         print("Loading movie recommendation system...")
         recommender = MovieRecommendationSystem()
         print("✅ System loaded successfully!")
+        
+        # Initialize the authentication system
+        print("Loading authentication system...")
+        auth_system = AuthSystem()
+        print("✅ Authentication system loaded successfully!")
         print()
         
         # Main application loop
         while True:
+            # Display current user status
+            if auth_system.is_logged_in():
+                user = auth_system.get_current_user()
+                print(f"👤 Logged in as: {user.name} ({user.username})")
+            else:
+                print("👤 Not logged in")
+            
             # Display menu and get user choice
             print_menu()
-            choice = get_user_input("Enter your choice (1-9): ", range(1, 10))
+            choice = get_user_input("Enter your choice (1-14): ", range(1, 15))
             
             # Handle user quit
             if choice is None:
@@ -424,22 +554,53 @@ def main():
             
             # Route to appropriate function based on user choice
             if choice == 1:
-                get_personalized_recommendations(recommender)
+                handle_login(auth_system)
             elif choice == 2:
-                get_content_based_recommendations(recommender)
+                handle_register(auth_system)
             elif choice == 3:
-                get_hybrid_recommendations(recommender)
+                if auth_system.is_logged_in():
+                    get_personalized_recommendations(recommender, auth_system)
+                else:
+                    print("❌ Please login first!")
             elif choice == 4:
-                show_popular_movies(recommender)
+                if auth_system.is_logged_in():
+                    get_content_based_recommendations(recommender)
+                else:
+                    print("❌ Please login first!")
             elif choice == 5:
-                browse_by_genre(recommender)
+                if auth_system.is_logged_in():
+                    get_hybrid_recommendations(recommender)
+                else:
+                    print("❌ Please login first!")
             elif choice == 6:
-                view_user_ratings(recommender)
+                show_popular_movies(recommender)
             elif choice == 7:
-                list_all_movies(recommender)
+                browse_by_genre(recommender)
             elif choice == 8:
-                list_all_users(recommender)
+                if auth_system.is_logged_in():
+                    view_user_ratings(recommender)
+                else:
+                    print("❌ Please login first!")
             elif choice == 9:
+                list_all_movies(recommender)
+            elif choice == 10:
+                if auth_system.is_logged_in():
+                    list_all_users(recommender)
+                else:
+                    print("❌ Please login first!")
+            elif choice == 11:
+                if auth_system.is_logged_in():
+                    auth_system.display_user_info()
+                else:
+                    print("❌ Please login first!")
+            elif choice == 12:
+                if auth_system.is_logged_in():
+                    handle_change_password(auth_system)
+                else:
+                    print("❌ Please login first!")
+            elif choice == 13:
+                auth_system.logout()
+            elif choice == 14:
                 print("\n👋 Thank you for using the Movie Recommendation System!")
                 break
             

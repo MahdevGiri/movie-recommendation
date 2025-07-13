@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import TruncatedSVD
-from movie_data import load_all_data
+from database_adapter import DatabaseAdapter
 
 class MovieRecommendationSystem:
     """
@@ -25,13 +25,18 @@ class MovieRecommendationSystem:
         """
         Initialize the recommendation system with data and prepare similarity matrices.
         
-        Loads all datasets and creates:
+        Loads all datasets from PostgreSQL database and creates:
         - User-movie rating matrix for collaborative filtering
         - Movie similarity matrix for content-based filtering
         - User similarity matrix for finding similar users
         """
-        # Load all datasets (movies, users, ratings)
-        self.movies_df, self.users_df, self.ratings_df = load_all_data()
+        # Initialize database adapter
+        self.db_adapter = DatabaseAdapter()
+        
+        # Load all datasets from database
+        self.movies_df = self.db_adapter.get_movies_df()
+        self.users_df = self.db_adapter.get_users_df()
+        self.ratings_df = self.db_adapter.get_ratings_df()
         
         # Initialize similarity matrices (will be created in _prepare_data)
         self.user_movie_matrix = None      # Users x Movies matrix with ratings
@@ -167,6 +172,34 @@ class MovieRecommendationSystem:
         # Check if user exists in our dataset
         if user_id not in self.users_df['user_id'].values:
             return []
+        
+        # Check if user has any ratings (exists in user_movie_matrix)
+        if user_id not in self.user_movie_matrix.index:
+            # User has no ratings, return popular movies based on their preferred genre
+            user_info = self.users_df[self.users_df['user_id'] == user_id].iloc[0]
+            preferred_genre = user_info['preferred_genre']
+            
+            # Get popular movies in their preferred genre
+            genre_movies = self.movies_df[self.movies_df['genre'] == preferred_genre]
+            
+            if len(genre_movies) == 0:
+                # If no movies in preferred genre, get general popular movies
+                genre_movies = self.movies_df
+            
+            # Sort by rating and return top recommendations
+            top_movies = genre_movies.nlargest(n_recommendations, 'rating')
+            
+            recommended_movies = []
+            for _, movie in top_movies.iterrows():
+                recommended_movies.append({
+                    'movie_id': movie['movie_id'],
+                    'title': movie['title'],
+                    'genre': movie['genre'],
+                    'year': movie['year'],
+                    'predicted_rating': round(movie['rating'], 1)
+                })
+            
+            return recommended_movies
         
         # Find the index of the user in our similarity matrix
         user_idx = self.user_movie_matrix.index.get_loc(user_id)

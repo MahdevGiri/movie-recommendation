@@ -200,6 +200,131 @@ class DatabaseService:
         finally:
             session.close()
     
+    def get_movies(self, page: int = 1, per_page: int = 20, genre: Optional[str] = None, 
+                  search: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Get movies with pagination and filtering."""
+        session = self.get_session()
+        try:
+            query = session.query(Movie)
+            
+            if genre:
+                query = query.filter(Movie.genre == genre)
+            
+            if search:
+                query = query.filter(Movie.title.ilike(f'%{search}%'))
+            
+            # Apply pagination
+            offset = (page - 1) * per_page
+            movies = query.offset(offset).limit(per_page).all()
+            
+            # Convert to dictionaries
+            result = []
+            for movie in movies:
+                result.append({
+                    'id': movie.id,
+                    'title': movie.title,
+                    'genre': movie.genre,
+                    'year': movie.year,
+                    'rating': movie.rating,
+                    'description': movie.description,
+                    'director': movie.director,
+                    'cast': movie.cast,
+                    'poster_url': movie.poster_url
+                })
+            
+            return result
+        finally:
+            session.close()
+    
+    def get_all_genres(self) -> List[str]:
+        """Get all available genres."""
+        session = self.get_session()
+        try:
+            genres = session.query(Movie.genre).distinct().all()
+            return [genre[0] for genre in genres]
+        finally:
+            session.close()
+    
+    def add_rating(self, user_id: int, movie_id: int, rating: float, review: str = '') -> bool:
+        """Add or update a rating."""
+        session = self.get_session()
+        try:
+            # Check if rating already exists
+            existing_rating = session.query(Rating).filter(
+                and_(Rating.user_id == user_id, Rating.movie_id == movie_id)
+            ).first()
+            
+            if existing_rating:
+                # Update existing rating
+                existing_rating.rating = rating
+                existing_rating.review = review
+                existing_rating.updated_at = datetime.now()
+            else:
+                # Create new rating
+                new_rating = Rating(
+                    user_id=user_id,
+                    movie_id=movie_id,
+                    rating=rating,
+                    review=review
+                )
+                session.add(new_rating)
+            
+            session.commit()
+            return True
+            
+        except Exception as e:
+            session.rollback()
+            print(f"Error adding rating: {e}")
+            return False
+        finally:
+            session.close()
+    
+    def update_rating(self, user_id: int, movie_id: int, rating: float, review: str = '') -> bool:
+        """Update an existing rating."""
+        session = self.get_session()
+        try:
+            existing_rating = session.query(Rating).filter(
+                and_(Rating.user_id == user_id, Rating.movie_id == movie_id)
+            ).first()
+            
+            if existing_rating:
+                existing_rating.rating = rating
+                existing_rating.review = review
+                existing_rating.updated_at = datetime.now()
+                session.commit()
+                return True
+            else:
+                return False
+                
+        except Exception as e:
+            session.rollback()
+            print(f"Error updating rating: {e}")
+            return False
+        finally:
+            session.close()
+    
+    def delete_rating(self, user_id: int, movie_id: int) -> bool:
+        """Delete a rating."""
+        session = self.get_session()
+        try:
+            rating = session.query(Rating).filter(
+                and_(Rating.user_id == user_id, Rating.movie_id == movie_id)
+            ).first()
+            
+            if rating:
+                session.delete(rating)
+                session.commit()
+                return True
+            else:
+                return False
+                
+        except Exception as e:
+            session.rollback()
+            print(f"Error deleting rating: {e}")
+            return False
+        finally:
+            session.close()
+    
     def search_movies(self, query: str, limit: int = 20) -> List[Movie]:
         """Search movies by title."""
         session = self.get_session()

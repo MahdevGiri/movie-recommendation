@@ -68,6 +68,22 @@ class MovieRecommendationSystem:
         self._create_movie_similarity_matrix()  # For content-based filtering
         self._create_user_similarity_matrix()   # For collaborative filtering
     
+    def refresh_data(self):
+        """
+        Refresh all data from the database.
+        
+        This method reloads all datasets from the database and recreates
+        the similarity matrices. Use this after adding/updating ratings
+        to ensure the recommendation system has the latest data.
+        """
+        # Reload all datasets from database
+        self.movies_df = self.db_adapter.get_movies_df()
+        self.users_df = self.db_adapter.get_users_df()
+        self.ratings_df = self.db_adapter.get_ratings_df()
+        
+        # Recreate similarity matrices with updated data
+        self._prepare_data()
+    
     def _create_movie_similarity_matrix(self):
         """
         Create movie similarity matrix based on content features (genres and ratings).
@@ -143,11 +159,11 @@ class MovieRecommendationSystem:
             movie = self.movies_df.iloc[idx]
             similarity_score = movie_similarities[idx]
             recommended_movies.append({
-                'movie_id': movie['movie_id'],
-                'title': movie['title'],
-                'genre': movie['genre'],
-                'year': movie['year'],
-                'similarity_score': round(similarity_score, 3)
+                'movie_id': int(movie['movie_id']),
+                'title': str(movie['title']),
+                'genre': str(movie['genre']),
+                'year': int(movie['year']),
+                'similarity_score': float(round(similarity_score, 3))
             })
         
         return recommended_movies
@@ -160,7 +176,8 @@ class MovieRecommendationSystem:
         1. Finds users similar to the target user
         2. Identifies movies rated highly by similar users
         3. Predicts ratings for unrated movies
-        4. Returns top recommendations
+        4. Gives preference to user's preferred genre
+        5. Returns top recommendations
         
         Args:
             user_id (int): ID of the target user
@@ -173,12 +190,13 @@ class MovieRecommendationSystem:
         if user_id not in self.users_df['user_id'].values:
             return []
         
+        # Get user's preferred genre
+        user_info = self.users_df[self.users_df['user_id'] == user_id].iloc[0]
+        preferred_genre = user_info['preferred_genre']
+        
         # Check if user has any ratings (exists in user_movie_matrix)
         if user_id not in self.user_movie_matrix.index:
             # User has no ratings, return popular movies based on their preferred genre
-            user_info = self.users_df[self.users_df['user_id'] == user_id].iloc[0]
-            preferred_genre = user_info['preferred_genre']
-            
             # Get popular movies in their preferred genre
             genre_movies = self.movies_df[self.movies_df['genre'] == preferred_genre]
             
@@ -192,11 +210,11 @@ class MovieRecommendationSystem:
             recommended_movies = []
             for _, movie in top_movies.iterrows():
                 recommended_movies.append({
-                    'movie_id': movie['movie_id'],
-                    'title': movie['title'],
-                    'genre': movie['genre'],
-                    'year': movie['year'],
-                    'predicted_rating': round(movie['rating'], 1)
+                    'movie_id': int(movie['movie_id']),
+                    'title': str(movie['title']),
+                    'genre': str(movie['genre']),
+                    'year': int(movie['year']),
+                    'predicted_rating': float(round(movie['rating'], 1))
                 })
             
             return recommended_movies
@@ -236,6 +254,15 @@ class MovieRecommendationSystem:
             # Calculate predicted rating as weighted average
             if total_similarity > 0:
                 predicted_rating = score / total_similarity
+                
+                # Apply genre preference boost
+                movie_info = self.movies_df[self.movies_df['movie_id'] == movie_id].iloc[0]
+                movie_genre = movie_info['genre']
+                
+                # Boost rating for movies in user's preferred genre
+                if movie_genre == preferred_genre:
+                    predicted_rating *= 1.3  # 30% boost for preferred genre
+                
                 movie_scores[movie_id] = predicted_rating
         
         # Sort movies by predicted rating (highest first)
@@ -246,11 +273,11 @@ class MovieRecommendationSystem:
         for movie_id, predicted_rating in sorted_movies[:n_recommendations]:
             movie = self.movies_df[self.movies_df['movie_id'] == movie_id].iloc[0]
             recommended_movies.append({
-                'movie_id': movie['movie_id'],
-                'title': movie['title'],
-                'genre': movie['genre'],
-                'year': movie['year'],
-                'predicted_rating': round(predicted_rating, 2)
+                'movie_id': int(movie['movie_id']),
+                'title': str(movie['title']),
+                'genre': str(movie['genre']),
+                'year': int(movie['year']),
+                'predicted_rating': float(round(predicted_rating, 2))
             })
         
         return recommended_movies
@@ -366,11 +393,11 @@ class MovieRecommendationSystem:
         for _, row in movie_stats.head(n_recommendations).iterrows():
             movie = self.movies_df[self.movies_df['movie_id'] == row['movie_id']].iloc[0]
             popular_movies.append({
-                'movie_id': movie['movie_id'],
-                'title': movie['title'],
-                'genre': movie['genre'],
-                'year': movie['year'],
-                'avg_rating': round(row['avg_rating'], 2),
+                'movie_id': int(movie['movie_id']),
+                'title': str(movie['title']),
+                'genre': str(movie['genre']),
+                'year': int(movie['year']),
+                'avg_rating': float(round(row['avg_rating'], 2)),
                 'rating_count': int(row['rating_count'])
             })
         
@@ -400,11 +427,11 @@ class MovieRecommendationSystem:
         recommended_movies = []
         for _, movie in genre_movies.head(n_recommendations).iterrows():
             recommended_movies.append({
-                'movie_id': movie['movie_id'],
-                'title': movie['title'],
-                'genre': movie['genre'],
-                'year': movie['year'],
-                'rating': movie['rating']
+                'movie_id': int(movie['movie_id']),
+                'title': str(movie['title']),
+                'genre': str(movie['genre']),
+                'year': int(movie['year']),
+                'rating': float(movie['rating'])
             })
         
         return recommended_movies

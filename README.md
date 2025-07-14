@@ -1,383 +1,255 @@
 # 🎬 Movie Recommendation System
 
-A simple yet powerful movie recommendation system built in Python using PostgreSQL database. This project demonstrates various recommendation algorithms including collaborative filtering, content-based filtering, and hybrid approaches, with a complete user authentication system.
+A full-stack movie recommendation system with a Python Flask backend and React TypeScript frontend. This project demonstrates modern web development practices with user authentication, personalized recommendations, and a responsive UI.
 
-## ✨ Features
+## 🌟 Features
 
-- **🔐 User Authentication**: Secure login/registration system with password hashing
-- **👤 User Profiles**: Personalized user accounts with preferences and settings
-- **🔑 Password Management**: Change passwords and manage account security
-- **Collaborative Filtering**: Recommends movies based on similar users' preferences
-- **Content-Based Filtering**: Recommends movies similar to a specific movie based on genres
-- **Hybrid Recommendations**: Combines both collaborative and content-based approaches
-- **Popular Movies**: Shows trending movies based on average ratings
-- **Genre Browsing**: Browse movies by specific genres
-- **User Rating History**: View all ratings for any user
-- **Interactive CLI**: User-friendly command-line interface
-- **PostgreSQL Database**: Robust data persistence with SQLAlchemy ORM
+### Backend (Python Flask)
+- **🔐 JWT Authentication**: Secure login/registration with JWT tokens
+- **🎯 Recommendation Algorithms**: Collaborative filtering, content-based filtering, and hybrid approaches
+- **📊 PostgreSQL Database**: Robust data persistence with SQLAlchemy ORM
+- **🔄 RESTful API**: Complete REST endpoints for all functionality
+- **🔒 CORS Support**: Cross-origin resource sharing enabled
+- **📈 User Profiles**: Personalized user accounts with preferences
 
-## 📊 Dataset
+### Frontend (React TypeScript)
+- **🎨 Modern UI**: Material-UI components with dark theme
+- **📱 Responsive Design**: Works seamlessly on desktop and mobile
+- **🔐 Authentication**: Login/register with JWT token management
+- **🎬 Movie Browsing**: Browse, search, and rate movies
+- **💡 Smart Recommendations**: Personalized movie suggestions
+- **👤 User Profiles**: Manage preferences and view rating history
+- **⚡ TypeScript**: Full type safety and better development experience
 
-The system uses a comprehensive dataset containing:
-- **49 Movies**: Popular movies with genres, years, ratings, descriptions, and directors
-- **10 Users**: Users with different preferences and age groups
-- **145+ Ratings**: User ratings on a 1-5 scale with realistic preference patterns
-
-### Sample Movies
-- The Shawshank Redemption (Drama, 1994) - Frank Darabont
-- The Godfather (Crime, 1972) - Francis Ford Coppola
-- The Dark Knight (Action, 2008) - Christopher Nolan
-- Inception (Sci-Fi, 2010) - Christopher Nolan
-- And many more...
-
-## 🚀 Installation
-
-### Prerequisites
-
-1. **PostgreSQL Database**
-   - Install PostgreSQL (version 12 or higher)
-   - Create a database named `movie_recommendation`
-   - Note down your database credentials
-
-2. **Python Dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-### Database Setup
-
-1. **Initialize the database**:
-   ```bash
-   python init_database.py
-   ```
-   This will:
-   - Create the `.env` file with default PostgreSQL credentials
-   - Test the database connection
-   - Create all necessary tables
-   - Seed the database with sample data
-
-   **Note**: The default credentials are:
-   - Host: localhost
-   - Port: 5432
-   - Database: movie_recommendation
-   - Username: postgres
-   - Password: postgres
-
-   You can edit the `.env` file to change these settings.
-
-### Running the Application
-
-1. **Start the main application**:
-   ```bash
-   python main.py
-   ```
-
-2. **Test the login system** (optional):
-   ```bash
-   python login_demo.py
-   ```
-
-3. **Reset database** (if needed):
-   ```bash
-   python database_seeder.py --clear
-   python init_database.py
-   ```
-
-## 📋 Requirements
-
-- Python 3.7+
-- PostgreSQL 12+
-- pandas
-- numpy
-- scikit-learn
-- psycopg2-binary
-- sqlalchemy
-- python-dotenv
-
-## 🎯 Usage
-
-### Starting the Application
-
-Run the main script:
-```bash
-python main.py
-```
-
-### Main Menu Options
-
-1. **Login** - Authenticate with username and password
-2. **Register** - Create a new user account
-3. **Get personalized recommendations for a user** (requires login)
-   - Uses your logged-in profile for recommendations
-   - Get movie recommendations based on similar users
-
-4. **Get content-based recommendations for a movie** (requires login)
-   - Enter a movie ID (1-49)
-   - Get movies similar based on genre and features
-
-5. **Get hybrid recommendations** (requires login)
-   - Combine collaborative and content-based filtering
-   - Optionally specify a reference movie
-
-6. **Show popular movies**
-   - View trending movies based on average ratings
-
-7. **Browse movies by genre**
-   - Filter movies by specific genres (Action, Drama, Sci-Fi, etc.)
-
-8. **View user ratings** (requires login)
-   - See all movies rated by a specific user
-
-9. **List all movies**
-   - Browse the complete movie database
-
-10. **List all users** (requires login)
-    - View all users and their preferences
-
-11. **View my profile** (requires login)
-    - Display your account information and preferences
-
-12. **Change password** (requires login)
-    - Update your account password securely
-
-13. **Logout** - Sign out of your account
-
-14. **Exit** - Close the application
-
-## 🔧 How It Works
-
-### Collaborative Filtering
-- Creates a user-movie rating matrix
-- Calculates similarity between users using cosine similarity
-- Recommends movies that similar users have rated highly
-
-### Content-Based Filtering
-- Analyzes movie features (genres, ratings)
-- Creates a similarity matrix between movies
-- Recommends movies similar to a reference movie
-
-### Hybrid Approach
-- Combines both collaborative and content-based scores
-- Weights collaborative filtering more heavily (70% vs 30%)
-- Provides more diverse and accurate recommendations
-
-## 📁 Project Structure
+## 🏗️ Project Structure
 
 ```
 movie-recommendation/
-├── main.py                 # Main application with CLI and authentication
-├── auth_system.py         # User authentication and session management
-├── login_demo.py          # Demo script for testing login functionality
-├── test_login.py          # Automated login tests
-├── init_database.py       # Database initialization script
-├── create_env.py          # Environment file creation utility
-├── database_config.py     # PostgreSQL connection configuration
-├── database_service.py    # Database operations service layer
-├── database_adapter.py    # Adapter for pandas DataFrame compatibility
-├── models.py              # SQLAlchemy database models
-├── database_seeder.py     # Database seeding with sample data
-├── recommendation_system.py # Core recommendation algorithms
-├── movie_data.py          # Legacy dummy dataset generation
-├── requirements.txt       # Python dependencies
-├── .env                   # Database configuration (created by init)
-└── README.md             # This file
+├── backend/                 # Python Flask API
+│   ├── api_server.py       # Main Flask application
+│   ├── auth_system.py      # JWT authentication
+│   ├── recommendation_system.py # Recommendation algorithms
+│   ├── database_service.py # Database operations
+│   ├── models.py           # SQLAlchemy models
+│   ├── requirements.txt    # Python dependencies
+│   └── README.md          # Backend documentation
+├── frontend/               # React TypeScript app
+│   ├── src/
+│   │   ├── components/     # Reusable UI components
+│   │   ├── pages/         # Page components
+│   │   ├── services/      # API services
+│   │   ├── contexts/      # React contexts
+│   │   ├── types/         # TypeScript definitions
+│   │   └── App.tsx        # Main app component
+│   ├── package.json       # Node.js dependencies
+│   └── README.md          # Frontend documentation
+└── README.md              # This file
 ```
 
-## 🎨 Example Output
+## 🚀 Quick Start
 
-```
-============================================================
-🎬 MOVIE RECOMMENDATION SYSTEM 🎬
-============================================================
+### Prerequisites
 
-Loading movie recommendation system...
-✅ System loaded successfully!
-Loading authentication system...
-✅ Authentication system loaded successfully!
+1. **Node.js 16+** and **npm** (for frontend)
+2. **Python 3.7+** and **pip** (for backend)
+3. **PostgreSQL 12+** database
 
-👤 Not logged in
+### Installation
 
-📋 MAIN MENU:
-1. Login
-2. Register
-3. Get personalized recommendations for a user
-4. Get content-based recommendations for a movie
-5. Get hybrid recommendations
-6. Show popular movies
-7. Browse movies by genre
-8. View user ratings
-9. List all movies
-10. List all users
-11. View my profile
-12. Change password
-13. Logout
-14. Exit
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url>
+   cd movie-recommendation
+   ```
 
-Enter your choice (1-14): 1
+2. **Set up the backend:**
+   ```bash
+   cd backend
+   pip install -r requirements.txt
+   python init_database.py
+   ```
 
-🔐 LOGIN
-----------------------------------------
-Username: alice
-Password: ****
-✅ Welcome back, Alice Johnson!
+3. **Set up the frontend:**
+   ```bash
+   cd ../frontend
+   npm install
+   ```
 
-👤 Logged in as: Alice Johnson (alice)
+### Running the Application
 
-Enter your choice (1-14): 3
+1. **Start the backend server:**
+   ```bash
+   cd backend
+   python api_server.py
+   ```
+   The API will be available at: http://localhost:5000
 
-👤 PERSONALIZED RECOMMENDATIONS
-----------------------------------------
-Getting recommendations for: Alice Johnson (User ID: 2)
-Preferred genre: Drama
-Number of recommendations (1-10): 5
+2. **Start the frontend development server:**
+   ```bash
+   cd frontend
+   npm start
+   ```
+   The frontend will be available at: http://localhost:3000
 
-🎭 PERSONALIZED RECOMMENDATIONS FOR ALICE JOHNSON:
---------------------------------------------------------------------------------
- 1. The Shawshank Redemption (1994) - Drama - Predicted Rating: 4.3
- 2. Forrest Gump (1994) - Drama - Predicted Rating: 4.2
- 3. The Green Mile (1999) - Drama - Predicted Rating: 4.1
- 4. Good Will Hunting (1997) - Drama - Predicted Rating: 4.0
- 5. The Social Network (2010) - Biography - Predicted Rating: 3.9
-```
-
-## 🔐 Security Features
-
-### Password Security
-- **SHA-256 Hashing**: All passwords are securely hashed before storage
-- **No Plain Text**: Passwords are never stored in readable format
-- **Secure Authentication**: Login verification uses hash comparison
-- **Session Management**: Secure session tokens for logged-in users
-
-### Data Protection
-- **Unique Usernames**: Prevents duplicate account creation
-- **Input Validation**: Age and password length requirements
-- **SQL Injection Protection**: Uses SQLAlchemy ORM with parameterized queries
+3. **Open your browser:**
+   Navigate to http://localhost:3000 to access the application
 
 ## 🔐 Default Login Credentials
 
-The system comes with pre-configured demo accounts:
+Use any of these demo accounts:
+- **Username:** `admin`, **Password:** `admin123`
+- **Username:** `alice`, **Password:** `alice123`
+- **Username:** `bob`, **Password:** `bob123`
 
-| Username | Password | Role | Preferred Genre |
-|----------|----------|------|-----------------|
-| admin    | admin123 | Admin | Drama |
-| alice    | alice123 | User | Drama |
-| bob      | bob123   | User | Action |
-| charlie  | charlie123 | User | Sci-Fi |
-| diana    | diana123 | User | Romance |
-| eve      | eve123   | User | Horror |
-| frank    | frank123 | User | Crime |
-| grace    | grace123 | User | Comedy |
-| henry    | henry123 | User | Action |
-| ivy      | ivy123   | User | Drama |
+## 📊 Dataset
 
-## 🔍 Algorithm Details
+The system includes a comprehensive dataset with:
+- **49 Movies**: Popular movies with genres, years, ratings, and descriptions
+- **10 Users**: Users with different preferences and age groups
+- **145+ Ratings**: User ratings on a 1-5 scale with realistic patterns
 
-### Similarity Calculation
-- **Cosine Similarity**: Used for both user and movie similarity
-- **Feature Vector**: Movies represented by genre dummies and ratings
-- **Rating Matrix**: Users × Movies matrix with ratings
+### Sample Movies
+- The Shawshank Redemption (Drama, 1994)
+- The Godfather (Crime, 1972)
+- The Dark Knight (Action, 2008)
+- Inception (Sci-Fi, 2010)
+- And many more...
 
-### Recommendation Scoring
-- **Collaborative**: Weighted average of similar users' ratings
-- **Content-Based**: Direct similarity scores
-- **Hybrid**: Weighted combination (70% CF + 30% CB)
+## 🎯 API Endpoints
 
-## 🛠️ Customization
+### Authentication
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+- `GET /api/auth/profile` - Get user profile
 
-### Adding New Movies
-Edit the `movies_data` list in `database_seeder.py`:
-```python
-movies_data = [
-    ("Your Movie Title", "Genre", 2024, 8.5, "Description...", "Director Name"),
-    # Add more movies here
-]
+### Movies
+- `GET /api/movies` - List all movies (with pagination)
+- `GET /api/movies/{id}` - Get specific movie details
+
+### Ratings
+- `POST /api/ratings` - Rate a movie
+- `GET /api/ratings` - Get user's ratings
+
+### Recommendations
+- `GET /api/recommendations/personalized` - Get personalized recommendations
+- `GET /api/recommendations/popular` - Get popular movies
+
+## 🔧 Development
+
+### Backend Development
+- **Framework**: Flask with Flask-CORS
+- **Database**: PostgreSQL with SQLAlchemy ORM
+- **Authentication**: JWT tokens
+- **Recommendation Algorithms**: Collaborative filtering, content-based filtering, hybrid approach
+
+### Frontend Development
+- **Framework**: React 18 with TypeScript
+- **UI Library**: Material-UI (MUI)
+- **State Management**: React Context API
+- **HTTP Client**: Axios
+- **Routing**: React Router
+
+### Available Scripts
+
+**Backend:**
+```bash
+cd backend
+python api_server.py          # Start development server
+python init_database.py       # Initialize database
+python test_login.py          # Run authentication tests
 ```
 
-### Adding New Users
-Edit the `users_data` list in `database_seeder.py`:
-```python
-users_data = [
-    ("username", "password", "Full Name", "email@example.com", 25, "Preferred Genre", "role"),
-    # Add more users here
-]
+**Frontend:**
+```bash
+cd frontend
+npm start                     # Start development server
+npm build                     # Build for production
+npm test                      # Run tests
 ```
 
-## 🐛 Troubleshooting
+## 🎨 Features in Detail
 
-### Common Issues
+### User Authentication
+- Secure JWT-based authentication
+- User registration and login
+- Password hashing with SHA-256
+- Session management
 
-1. **"User object is not subscriptable" error**
-   - ✅ **FIXED**: This has been resolved in the latest version
-   - The application now properly handles User objects from the database
+### Movie Recommendations
+- **Collaborative Filtering**: Based on similar users' preferences
+- **Content-Based Filtering**: Based on movie features and genres
+- **Hybrid Approach**: Combines both methods for better accuracy
+- **Popular Movies**: Trending movies based on average ratings
 
-2. **New users getting "No movies found" for recommendations**
-   - ✅ **FIXED**: New users without ratings now get genre-based recommendations
-   - The system automatically provides popular movies in their preferred genre
+### User Interface
+- **Responsive Design**: Works on all screen sizes
+- **Dark Theme**: Modern dark UI with Material-UI
+- **Movie Cards**: Beautiful movie presentation with ratings
+- **Search & Filter**: Find movies by title, genre, or year
+- **Pagination**: Efficient browsing of large movie collections
 
-3. **Registration not automatically logging in users**
-   - ✅ **FIXED**: Users are now automatically logged in after successful registration
-   - No need to manually login after registration
+### User Experience
+- **Real-time Updates**: Instant feedback on ratings and recommendations
+- **Loading States**: Smooth loading indicators
+- **Error Handling**: User-friendly error messages
+- **Navigation**: Intuitive navigation between pages
 
-4. **Database connection issues**
-   - Ensure PostgreSQL is running
-   - Check your `.env` file configuration
-   - Verify database credentials
+## 🔒 Security Features
 
-5. **Password input not visible**
-   - This is normal behavior for security
-   - Type your password and press Enter
-   - If using PowerShell, try Command Prompt instead
+- **JWT Authentication**: Secure token-based authentication
+- **Password Hashing**: SHA-256 hashing for password security
+- **CORS Configuration**: Proper cross-origin resource sharing
+- **Input Validation**: Server-side validation of all inputs
+- **SQL Injection Protection**: Parameterized queries with SQLAlchemy
 
-6. **Import errors**
-   - Ensure all dependencies are installed: `pip install -r requirements.txt`
-   - Check that all files are in the correct directory
+## 📱 Responsive Design
 
-## 🎓 Learning Objectives
+The frontend is fully responsive and works on:
+- **Desktop**: Full-featured experience with all controls
+- **Tablet**: Optimized layout for medium screens
+- **Mobile**: Touch-friendly interface for small screens
 
-This project demonstrates:
-- **Database Design**: PostgreSQL with SQLAlchemy ORM
-- **Data Preprocessing**: Creating and manipulating pandas DataFrames
-- **Machine Learning**: Implementing recommendation algorithms
-- **Similarity Metrics**: Using cosine similarity for recommendations
-- **Matrix Operations**: Working with user-item matrices
-- **Software Design**: Modular code structure and clean interfaces
-- **Authentication**: Secure user management with password hashing
+## 🚀 Deployment
+
+### Backend Deployment
+1. Set up a PostgreSQL database
+2. Configure environment variables
+3. Install Python dependencies
+4. Run database migrations
+5. Start the Flask application
+
+### Frontend Deployment
+1. Build the production version: `npm run build`
+2. Deploy the `build` folder to your web server
+3. Configure API endpoint URLs for production
 
 ## 🤝 Contributing
 
-Feel free to enhance this project by:
-- Adding more sophisticated algorithms
-- Implementing additional similarity metrics
-- Creating a web interface
-- Adding more movie features (director, cast, etc.)
-- Implementing real-time rating updates
-- Adding unit tests
-- Improving error handling
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
-## 📝 License
+## 📄 License
 
-This project is open source and available under the MIT License.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🎯 Future Enhancements
+## 🙏 Acknowledgments
 
-- Web-based user interface
-- Real-time rating system
-- More sophisticated algorithms (SVD, neural networks)
-- Movie poster integration
-- Enhanced user authentication (email verification, password reset)
-- User rating submission system
-- Movie watchlist functionality
-- API endpoints for external integration
-- Docker containerization
-- Automated testing suite
+- **Material-UI** for the beautiful UI components
+- **Flask** for the robust backend framework
+- **PostgreSQL** for the reliable database
+- **React** for the modern frontend framework
 
-## 📈 Recent Updates
+## 📞 Support
 
-- **v2.2**: Fixed new user recommendation system and auto-login after registration
-- **v2.1**: Fixed User object access issues in main.py
-- **v2.0**: Migrated to PostgreSQL database with SQLAlchemy ORM
-- **v1.0**: Initial release with in-memory data storage
+If you encounter any issues or have questions:
+1. Check the documentation in the `backend/README.md` and `frontend/README.md` files
+2. Review the API endpoints and their usage
+3. Check the console for error messages
+4. Ensure both backend and frontend servers are running
 
 ---
 
-**Enjoy exploring the world of movie recommendations! 🍿** 
+**Happy Movie Watching! 🎬✨** 

@@ -26,8 +26,11 @@ class DatabaseConfig:
         self.username = os.getenv('DB_USER', 'postgres')
         self.password = os.getenv('DB_PASSWORD', 'password')
         
-        # Create database URL
-        self.database_url = f"postgresql://{self.username}:{self.password}@{self.host}:{self.port}/{self.database}"
+        # Handle empty password for macOS trust authentication
+        if self.password == '':
+            self.database_url = f"postgresql://{self.username}@{self.host}:{self.port}/{self.database}"
+        else:
+            self.database_url = f"postgresql://{self.username}:{self.password}@{self.host}:{self.port}/{self.database}"
         
         # Create SQLAlchemy engine
         self.engine = create_engine(

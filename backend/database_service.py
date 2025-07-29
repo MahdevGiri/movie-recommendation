@@ -141,7 +141,7 @@ class DatabaseService:
     def create_movie(self, title: str, genre: str, year: int, 
                     rating: Optional[float] = None, description: Optional[str] = None,
                     director: Optional[str] = None, cast: Optional[str] = None,
-                    poster_url: Optional[str] = None) -> Optional[Movie]:
+                    poster_url: Optional[str] = None, trailer_url: Optional[str] = None) -> Optional[Movie]:
         """Create a new movie."""
         session = self.get_session()
         try:
@@ -153,7 +153,8 @@ class DatabaseService:
                 description=description,
                 director=director,
                 cast=cast,
-                poster_url=poster_url
+                poster_url=poster_url,
+                trailer_url=trailer_url
             )
             
             session.add(movie)
@@ -229,7 +230,8 @@ class DatabaseService:
                     'description': movie.description,
                     'director': movie.director,
                     'cast': movie.cast,
-                    'poster_url': movie.poster_url
+                    'poster_url': movie.poster_url,
+                    'trailer_url': movie.trailer_url
                 })
             
             return result

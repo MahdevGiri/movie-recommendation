@@ -43,6 +43,7 @@ class Movie(Base):
     director = Column(String(100), nullable=True)
     cast = Column(Text, nullable=True)  # JSON string of cast members
     poster_url = Column(String(500), nullable=True)
+    trailer_url = Column(String(500), nullable=True)  # YouTube trailer link
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     

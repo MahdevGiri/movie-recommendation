@@ -69,26 +69,42 @@ const Navbar: React.FC = () => {
   };
 
   const drawer = (
-    <Box sx={{ width: 250 }}>
+    <Box sx={{ 
+      width: 250,
+      background: 'rgba(255, 255, 255, 0.1)',
+      backdropFilter: 'blur(20px)',
+      height: '100%'
+    }}>
       <List>
-        {navItems.map((item) => (
+        {navItems.map((item, index) => (
           <ListItem 
             key={item.text} 
             component={RouterLink} 
             to={item.path}
             onClick={handleDrawerToggle}
             sx={{ 
-              color: 'inherit', 
+              color: 'rgba(255, 255, 255, 0.9)', 
               textDecoration: 'none',
+              animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`,
+              transition: 'all 0.3s ease',
               '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                transform: 'translateX(5px)',
               }
             }}
           >
-            <ListItemText primary={item.text} />
+            <ListItemText 
+              primary={item.text} 
+              sx={{
+                '& .MuiTypography-root': {
+                  fontWeight: 500,
+                  fontSize: '1.1rem'
+                }
+              }}
+            />
           </ListItem>
         ))}
-        {authItems.map((item) => (
+        {authItems.map((item, index) => (
           <ListItem 
             key={item.text} 
             component={isAuthItemWithPath(item) ? RouterLink : 'div'}
@@ -98,14 +114,25 @@ const Navbar: React.FC = () => {
               handleDrawerToggle();
             }}
             sx={{ 
-              color: 'inherit', 
+              color: 'rgba(255, 255, 255, 0.9)', 
               textDecoration: 'none',
+              animation: `fadeInUp 0.6s ease-out ${(navItems.length + index) * 0.1}s both`,
+              transition: 'all 0.3s ease',
               '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                transform: 'translateX(5px)',
               }
             }}
           >
-            <ListItemText primary={item.text} />
+            <ListItemText 
+              primary={item.text} 
+              sx={{
+                '& .MuiTypography-root': {
+                  fontWeight: 500,
+                  fontSize: '1.1rem'
+                }
+              }}
+            />
           </ListItem>
         ))}
       </List>
@@ -114,7 +141,17 @@ const Navbar: React.FC = () => {
 
   return (
     <>
-      <AppBar position="fixed">
+      <AppBar 
+        position="fixed" 
+        elevation={0}
+        sx={{
+          background: 'rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+          transition: 'all 0.3s ease',
+          animation: 'fadeInUp 0.6s ease-out'
+        }}
+      >
         <Toolbar sx={{ 
           justifyContent: 'space-between',
           px: { xs: 1, sm: 2, md: 3 }
@@ -126,7 +163,15 @@ const Navbar: React.FC = () => {
                 aria-label="open drawer"
                 edge="start"
                 onClick={handleDrawerToggle}
-                sx={{ mr: 1 }}
+                sx={{ 
+                  mr: 1,
+                  color: 'rgba(255, 255, 255, 0.9)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    transform: 'scale(1.1)',
+                  },
+                  transition: 'all 0.3s ease'
+                }}
               >
                 <MenuIcon />
               </IconButton>
@@ -138,7 +183,14 @@ const Navbar: React.FC = () => {
               sx={{ 
                 flexGrow: { xs: 1, md: 0 },
                 fontSize: { xs: '1.1rem', sm: '1.3rem', md: '1.5rem' },
-                textAlign: { xs: 'center', md: 'left' }
+                textAlign: { xs: 'center', md: 'left' },
+                color: 'rgba(255, 255, 255, 0.95)',
+                fontWeight: 600,
+                textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'scale(1.05)',
+                }
               }}
             >
               🎬 Movie Recommendations
@@ -148,18 +200,36 @@ const Navbar: React.FC = () => {
           {!isMobile && (
             <Box sx={{ display: 'flex', gap: { sm: 1, md: 2 } }}>
               <Button 
-                color="inherit" 
                 component={RouterLink} 
                 to="/"
-                sx={{ fontSize: { sm: '0.9rem', md: '1rem' } }}
+                sx={{ 
+                  fontSize: { sm: '0.9rem', md: '1rem' },
+                  color: 'rgba(255, 255, 255, 0.9)',
+                  fontWeight: 500,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    transform: 'translateY(-2px)',
+                    color: 'rgba(255, 255, 255, 1)',
+                  }
+                }}
               >
                 Home
               </Button>
               <Button 
-                color="inherit" 
                 component={RouterLink} 
                 to="/movies"
-                sx={{ fontSize: { sm: '0.9rem', md: '1rem' } }}
+                sx={{ 
+                  fontSize: { sm: '0.9rem', md: '1rem' },
+                  color: 'rgba(255, 255, 255, 0.9)',
+                  fontWeight: 500,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    transform: 'translateY(-2px)',
+                    color: 'rgba(255, 255, 255, 1)',
+                  }
+                }}
               >
                 Movies
               </Button>
@@ -167,25 +237,52 @@ const Navbar: React.FC = () => {
               {user ? (
                 <>
                   <Button 
-                    color="inherit" 
                     component={RouterLink} 
                     to="/recommendations"
-                    sx={{ fontSize: { sm: '0.9rem', md: '1rem' } }}
+                    sx={{ 
+                      fontSize: { sm: '0.9rem', md: '1rem' },
+                      color: 'rgba(255, 255, 255, 0.9)',
+                      fontWeight: 500,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        transform: 'translateY(-2px)',
+                        color: 'rgba(255, 255, 255, 1)',
+                      }
+                    }}
                   >
                     Recommendations
                   </Button>
                   <Button 
-                    color="inherit" 
                     component={RouterLink} 
                     to="/profile"
-                    sx={{ fontSize: { sm: '0.9rem', md: '1rem' } }}
+                    sx={{ 
+                      fontSize: { sm: '0.9rem', md: '1rem' },
+                      color: 'rgba(255, 255, 255, 0.9)',
+                      fontWeight: 500,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        transform: 'translateY(-2px)',
+                        color: 'rgba(255, 255, 255, 1)',
+                      }
+                    }}
                   >
                     Profile
                   </Button>
                   <Button 
-                    color="inherit" 
                     onClick={logout}
-                    sx={{ fontSize: { sm: '0.9rem', md: '1rem' } }}
+                    sx={{ 
+                      fontSize: { sm: '0.9rem', md: '1rem' },
+                      color: 'rgba(255, 255, 255, 0.9)',
+                      fontWeight: 500,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        transform: 'translateY(-2px)',
+                        color: 'rgba(255, 255, 255, 1)',
+                      }
+                    }}
                   >
                     Logout
                   </Button>
@@ -193,18 +290,36 @@ const Navbar: React.FC = () => {
               ) : (
                 <>
                   <Button 
-                    color="inherit" 
                     component={RouterLink} 
                     to="/login"
-                    sx={{ fontSize: { sm: '0.9rem', md: '1rem' } }}
+                    sx={{ 
+                      fontSize: { sm: '0.9rem', md: '1rem' },
+                      color: 'rgba(255, 255, 255, 0.9)',
+                      fontWeight: 500,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        transform: 'translateY(-2px)',
+                        color: 'rgba(255, 255, 255, 1)',
+                      }
+                    }}
                   >
                     Login
                   </Button>
                   <Button 
-                    color="inherit" 
                     component={RouterLink} 
                     to="/register"
-                    sx={{ fontSize: { sm: '0.9rem', md: '1rem' } }}
+                    sx={{ 
+                      fontSize: { sm: '0.9rem', md: '1rem' },
+                      color: 'rgba(255, 255, 255, 0.9)',
+                      fontWeight: 500,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        transform: 'translateY(-2px)',
+                        color: 'rgba(255, 255, 255, 1)',
+                      }
+                    }}
                   >
                     Register
                   </Button>
@@ -227,8 +342,10 @@ const Navbar: React.FC = () => {
           '& .MuiDrawer-paper': { 
             boxSizing: 'border-box', 
             width: 250,
-            backgroundColor: 'primary.main',
-            color: 'white'
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
           },
         }}
       >

@@ -163,6 +163,9 @@ class MovieRecommendationSystem:
                 'title': str(movie['title']),
                 'genre': str(movie['genre']),
                 'year': int(movie['year']),
+                'description': str(movie['description']) if pd.notna(movie['description']) else None,
+                'poster_url': str(movie['poster_url']) if pd.notna(movie['poster_url']) else None,
+                'trailer_url': str(movie['trailer_url']) if pd.notna(movie['trailer_url']) else None,
                 'similarity_score': float(round(similarity_score, 3))
             })
         
@@ -209,13 +212,16 @@ class MovieRecommendationSystem:
             
             recommended_movies = []
             for _, movie in top_movies.iterrows():
-                recommended_movies.append({
-                    'movie_id': int(movie['movie_id']),
-                    'title': str(movie['title']),
-                    'genre': str(movie['genre']),
-                    'year': int(movie['year']),
-                    'predicted_rating': float(round(movie['rating'], 1))
-                })
+                            recommended_movies.append({
+                'movie_id': int(movie['movie_id']),
+                'title': str(movie['title']),
+                'genre': str(movie['genre']),
+                'year': int(movie['year']),
+                'description': str(movie['description']) if pd.notna(movie['description']) else None,
+                'poster_url': str(movie['poster_url']) if pd.notna(movie['poster_url']) else None,
+                'trailer_url': str(movie['trailer_url']) if pd.notna(movie['trailer_url']) else None,
+                'predicted_rating': float(round(min(movie['rating'], 5.0), 1))
+            })
             
             return recommended_movies
         
@@ -263,6 +269,9 @@ class MovieRecommendationSystem:
                 if movie_genre == preferred_genre:
                     predicted_rating *= 1.3  # 30% boost for preferred genre
                 
+                # Cap the predicted rating at 5.0 to keep it within valid range
+                predicted_rating = min(predicted_rating, 5.0)
+                
                 movie_scores[movie_id] = predicted_rating
         
         # Sort movies by predicted rating (highest first)
@@ -277,6 +286,9 @@ class MovieRecommendationSystem:
                 'title': str(movie['title']),
                 'genre': str(movie['genre']),
                 'year': int(movie['year']),
+                'description': str(movie['description']) if pd.notna(movie['description']) else None,
+                'poster_url': str(movie['poster_url']) if pd.notna(movie['poster_url']) else None,
+                'trailer_url': str(movie['trailer_url']) if pd.notna(movie['trailer_url']) else None,
                 'predicted_rating': float(round(predicted_rating, 2))
             })
         
@@ -318,6 +330,9 @@ class MovieRecommendationSystem:
                     'title': rec['title'],
                     'genre': rec['genre'],
                     'year': rec['year'],
+                    'description': rec.get('description'),
+                    'poster_url': rec.get('poster_url'),
+                    'trailer_url': rec.get('trailer_url'),
                     'cf_score': rec['predicted_rating'],
                     'cb_score': 0,
                     'hybrid_score': rec['predicted_rating']  # Start with CF score
@@ -340,6 +355,9 @@ class MovieRecommendationSystem:
                         'title': rec['title'],
                         'genre': rec['genre'],
                         'year': rec['year'],
+                        'description': rec.get('description'),
+                        'poster_url': rec.get('poster_url'),
+                        'trailer_url': rec.get('trailer_url'),
                         'cf_score': 0,
                         'cb_score': rec['similarity_score'],
                         'hybrid_score': rec['similarity_score'] * 0.3  # Only CB contribution
@@ -397,6 +415,9 @@ class MovieRecommendationSystem:
                 'title': str(movie['title']),
                 'genre': str(movie['genre']),
                 'year': int(movie['year']),
+                'description': str(movie['description']) if pd.notna(movie['description']) else None,
+                'poster_url': str(movie['poster_url']) if pd.notna(movie['poster_url']) else None,
+                'trailer_url': str(movie['trailer_url']) if pd.notna(movie['trailer_url']) else None,
                 'avg_rating': float(round(row['avg_rating'], 2)),
                 'rating_count': int(row['rating_count'])
             })
@@ -431,7 +452,10 @@ class MovieRecommendationSystem:
                 'title': str(movie['title']),
                 'genre': str(movie['genre']),
                 'year': int(movie['year']),
-                'rating': float(movie['rating'])
+                'description': str(movie['description']) if pd.notna(movie['description']) else None,
+                'poster_url': str(movie['poster_url']) if pd.notna(movie['poster_url']) else None,
+                'trailer_url': str(movie['trailer_url']) if pd.notna(movie['trailer_url']) else None,
+                'rating': float(min(movie['rating'], 5.0))
             })
         
         return recommended_movies

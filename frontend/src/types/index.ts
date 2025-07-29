@@ -18,6 +18,7 @@ export interface Movie {
   director?: string;
   cast?: string;
   poster_url?: string;
+  trailer_url?: string;
 }
 
 export interface Rating {
@@ -42,6 +43,9 @@ export interface Recommendation {
   predicted_rating?: number;
   similarity_score?: number;
   hybrid_score?: number;
+  poster_url?: string;
+  trailer_url?: string;
+  description?: string;
 }
 
 export interface AuthContextType {

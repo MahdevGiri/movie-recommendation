@@ -22,6 +22,7 @@ import os
 from datetime import datetime, timedelta
 import json
 import hashlib
+import pandas as pd
 
 # Import existing modules
 from recommendation_system import MovieRecommendationSystem
@@ -259,7 +260,19 @@ def get_movie(movie_id):
         movie = db_service.get_movie_by_id(movie_id)
         
         if movie:
-            return jsonify({'movie': movie}), 200
+            movie_data = {
+                'id': movie.id,
+                'title': movie.title,
+                'genre': movie.genre,
+                'year': movie.year,
+                'rating': movie.rating,
+                'description': movie.description,
+                'director': movie.director,
+                'cast': movie.cast,
+                'poster_url': movie.poster_url,
+                'trailer_url': movie.trailer_url
+            }
+            return jsonify({'movie': movie_data}), 200
         else:
             return jsonify({'error': 'Movie not found'}), 404
             
@@ -360,7 +373,10 @@ def get_genre_focused_recommendations():
                 'title': str(movie['title']),
                 'genre': str(movie['genre']),
                 'year': int(movie['year']),
-                'rating': float(round(movie['rating'], 1)),
+                'description': str(movie['description']) if pd.notna(movie['description']) else None,
+                'poster_url': str(movie['poster_url']) if pd.notna(movie['poster_url']) else None,
+                'trailer_url': str(movie['trailer_url']) if pd.notna(movie['trailer_url']) else None,
+                'predicted_rating': float(round(min(movie['rating'], 5.0), 1)),
                 'reason': f'Top rated {preferred_genre} movie'
             })
         

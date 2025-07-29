@@ -98,7 +98,7 @@ const Register: React.FC = () => {
     if (formData.age) {
       const age = parseInt(formData.age);
       if (isNaN(age) || age < 13 || age > 120) {
-        newErrors.age = 'Please enter a valid age (13-120)';
+        newErrors.age = 'Age must be between 13 and 120';
       }
     }
 
@@ -117,7 +117,7 @@ const Register: React.FC = () => {
     try {
       await register({
         ...formData,
-        age: parseInt(formData.age) || 25
+        age: formData.age ? parseInt(formData.age) : undefined
       });
       // Redirect to home page after successful registration
       navigate('/');
@@ -135,6 +135,11 @@ const Register: React.FC = () => {
       [name]: value
     });
 
+    // Update password strength
+    if (name === 'password') {
+      setPasswordStrength(calculatePasswordStrength(value));
+    }
+
     // Clear error when user starts typing
     if (errors[name as keyof FormErrors]) {
       setErrors({
@@ -142,37 +147,53 @@ const Register: React.FC = () => {
         [name]: undefined
       });
     }
-
-    // Update password strength
-    if (name === 'password') {
-      setPasswordStrength(calculatePasswordStrength(value));
-    }
   };
 
   const handleSelectChange = (e: any) => {
-    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value
+      preferred_genre: e.target.value
     });
   };
 
   const getPasswordStrengthColor = () => {
-    if (passwordStrength < 25) return 'error';
-    if (passwordStrength < 50) return 'warning';
-    if (passwordStrength < 75) return 'info';
-    return 'success';
+    if (passwordStrength >= 75) return '#4caf50';
+    if (passwordStrength >= 50) return '#ff9800';
+    return '#f44336';
   };
 
   const getPasswordStrengthText = () => {
-    if (passwordStrength < 25) return 'Very Weak';
-    if (passwordStrength < 50) return 'Weak';
-    if (passwordStrength < 75) return 'Fair';
-    if (passwordStrength < 100) return 'Good';
-    return 'Strong';
+    if (passwordStrength >= 75) return 'Strong';
+    if (passwordStrength >= 50) return 'Medium';
+    return 'Weak';
   };
 
-  const genres = ['Drama', 'Action', 'Comedy', 'Sci-Fi', 'Horror', 'Romance', 'Thriller', 'Documentary'];
+  const commonTextFieldStyles = {
+    '& .MuiOutlinedInput-root': {
+      background: 'rgba(255, 255, 255, 0.1)',
+      backdropFilter: 'blur(10px)',
+      border: '1px solid rgba(255, 255, 255, 0.2)',
+      borderRadius: 2,
+      '&:hover': {
+        border: '1px solid rgba(255, 255, 255, 0.4)',
+      },
+      '&.Mui-focused': {
+        border: '1px solid #2196F3',
+      }
+    },
+    '& .MuiInputLabel-root': {
+      color: 'rgba(255, 255, 255, 0.8)',
+      '&.Mui-focused': {
+        color: '#2196F3',
+      }
+    },
+    '& .MuiInputBase-input': {
+      color: 'rgba(255, 255, 255, 0.9)',
+    },
+    '& .MuiFormHelperText-root': {
+      color: '#ff6b6b',
+    }
+  };
 
   return (
     <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: 4 }}>
@@ -181,14 +202,25 @@ const Register: React.FC = () => {
         flexDirection: 'column', 
         alignItems: 'center',
         minHeight: { xs: '60vh', sm: '70vh' },
-        justifyContent: 'center'
+        justifyContent: 'center',
+        animation: 'fadeInUp 0.8s ease-out'
       }}>
         <Paper 
-          elevation={3} 
+          elevation={0}
           sx={{ 
             p: { xs: 3, sm: 4, md: 5 }, 
             width: '100%',
-            maxWidth: { xs: '100%', sm: '700px' }
+            maxWidth: { xs: '100%', sm: '600px' },
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: 3,
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              transform: 'translateY(-5px)',
+              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)',
+            }
           }}
         >
           <Typography 
@@ -198,14 +230,17 @@ const Register: React.FC = () => {
             sx={{ 
               textAlign: 'center',
               fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.5rem' },
-              mb: 3
+              mb: 3,
+              color: 'rgba(255, 255, 255, 0.95)',
+              fontWeight: 600,
+              textShadow: '0 2px 4px rgba(0,0,0,0.3)'
             }}
           >
-            📝 Create Account
+            🎬 Join the Community
           </Typography>
           
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
-            <Grid container spacing={{ xs: 1, sm: 2 }}>
+            <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <TextField
                   margin="normal"
@@ -220,10 +255,95 @@ const Register: React.FC = () => {
                   error={!!errors.username}
                   helperText={errors.username}
                   disabled={loading}
-                  sx={{ mb: 2 }}
+                  sx={{ ...commonTextFieldStyles }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
+                <TextField
+                  margin="normal"
+                  required
+                  fullWidth
+                  id="name"
+                  label="Full Name"
+                  name="name"
+                  autoComplete="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  error={!!errors.name}
+                  helperText={errors.name}
+                  disabled={loading}
+                  sx={{ ...commonTextFieldStyles }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  id="email"
+                  label="Email (Optional)"
+                  name="email"
+                  autoComplete="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  error={!!errors.email}
+                  helperText={errors.email}
+                  disabled={loading}
+                  sx={{ ...commonTextFieldStyles }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  id="age"
+                  label="Age (Optional)"
+                  name="age"
+                  type="number"
+                  value={formData.age}
+                  onChange={handleChange}
+                  error={!!errors.age}
+                  helperText={errors.age}
+                  disabled={loading}
+                  sx={{ ...commonTextFieldStyles }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <FormControl fullWidth margin="normal" disabled={loading}>
+                  <InputLabel sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                    Preferred Genre
+                  </InputLabel>
+                  <Select
+                    value={formData.preferred_genre}
+                    onChange={handleSelectChange}
+                    sx={{
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      backdropFilter: 'blur(10px)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      borderRadius: 2,
+                      color: 'rgba(255, 255, 255, 0.9)',
+                      '&:hover': {
+                        border: '1px solid rgba(255, 255, 255, 0.4)',
+                      },
+                      '&.Mui-focused': {
+                        border: '1px solid #2196F3',
+                      },
+                      '& .MuiSelect-icon': {
+                        color: 'rgba(255, 255, 255, 0.7)',
+                      }
+                    }}
+                  >
+                    <MenuItem value="Drama">Drama</MenuItem>
+                    <MenuItem value="Comedy">Comedy</MenuItem>
+                    <MenuItem value="Action">Action</MenuItem>
+                    <MenuItem value="Thriller">Thriller</MenuItem>
+                    <MenuItem value="Romance">Romance</MenuItem>
+                    <MenuItem value="Sci-Fi">Sci-Fi</MenuItem>
+                    <MenuItem value="Horror">Horror</MenuItem>
+                    <MenuItem value="Documentary">Documentary</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12}>
                 <TextField
                   margin="normal"
                   required
@@ -245,117 +365,75 @@ const Register: React.FC = () => {
                           aria-label="toggle password visibility"
                           onClick={() => setShowPassword(!showPassword)}
                           edge="end"
+                          sx={{
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            '&:hover': {
+                              color: 'rgba(255, 255, 255, 0.9)',
+                            }
+                          }}
                         >
                           {showPassword ? <VisibilityOff /> : <Visibility />}
                         </IconButton>
                       </InputAdornment>
                     ),
                   }}
-                  sx={{ mb: 1 }}
+                  sx={{ ...commonTextFieldStyles }}
                 />
                 {formData.password && (
-                  <Box sx={{ mb: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                      <Typography variant="caption" sx={{ mr: 1 }}>
-                        Password Strength:
-                      </Typography>
-                      <Typography 
-                        variant="caption" 
-                        color={`${getPasswordStrengthColor()}.main`}
-                        sx={{ fontWeight: 'bold' }}
-                      >
-                        {getPasswordStrengthText()}
-                      </Typography>
-                    </Box>
+                  <Box sx={{ mt: 1 }}>
                     <LinearProgress 
                       variant="determinate" 
-                      value={passwordStrength} 
-                      color={getPasswordStrengthColor() as any}
-                      sx={{ height: 4, borderRadius: 2 }}
+                      value={passwordStrength}
+                      sx={{
+                        height: 8,
+                        borderRadius: 4,
+                        background: 'rgba(255, 255, 255, 0.2)',
+                        '& .MuiLinearProgress-bar': {
+                          background: getPasswordStrengthColor(),
+                          borderRadius: 4,
+                        }
+                      }}
                     />
+                    <Typography 
+                      variant="caption" 
+                      sx={{ 
+                        mt: 0.5, 
+                        display: 'block',
+                        color: getPasswordStrengthColor(),
+                        textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                      }}
+                    >
+                      Password strength: {getPasswordStrengthText()}
+                    </Typography>
                   </Box>
                 )}
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  margin="normal"
-                  required
-                  fullWidth
-                  id="name"
-                  label="Full Name"
-                  name="name"
-                  autoComplete="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  error={!!errors.name}
-                  helperText={errors.name}
-                  disabled={loading}
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  id="email"
-                  label="Email Address"
-                  name="email"
-                  autoComplete="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  error={!!errors.email}
-                  helperText={errors.email}
-                  disabled={loading}
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  id="age"
-                  label="Age"
-                  name="age"
-                  type="number"
-                  value={formData.age}
-                  onChange={handleChange}
-                  error={!!errors.age}
-                  helperText={errors.age || 'Optional'}
-                  disabled={loading}
-                  inputProps={{ min: 13, max: 120 }}
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth margin="normal" disabled={loading} sx={{ mb: 2 }}>
-                  <InputLabel id="preferred-genre-label">Preferred Genre</InputLabel>
-                  <Select
-                    labelId="preferred-genre-label"
-                    id="preferred_genre"
-                    name="preferred_genre"
-                    value={formData.preferred_genre}
-                    label="Preferred Genre"
-                    onChange={handleSelectChange}
-                  >
-                    {genres.map((genre) => (
-                      <MenuItem key={genre} value={genre}>
-                        {genre}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
               </Grid>
             </Grid>
 
             {loading && (
               <Box sx={{ mt: 2, mb: 2 }}>
-                <LinearProgress />
-                <Typography variant="body2" sx={{ mt: 1, textAlign: 'center' }}>
+                <LinearProgress 
+                  sx={{
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    '& .MuiLinearProgress-bar': {
+                      background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                    }
+                  }}
+                />
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    mt: 1, 
+                    textAlign: 'center',
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                  }}
+                >
                   Creating your account...
                 </Typography>
               </Box>
             )}
-            
+
             <Button
               type="submit"
               fullWidth
@@ -366,14 +444,31 @@ const Register: React.FC = () => {
                 mt: 3, 
                 mb: 2,
                 py: { xs: 1.5, sm: 2 },
-                fontSize: { xs: '1rem', sm: '1.1rem' }
+                fontSize: { xs: '1rem', sm: '1.1rem' },
+                background: 'linear-gradient(45deg, #FF6B35 30%, #F7931E 90%)',
+                boxShadow: '0 8px 16px rgba(255, 107, 53, 0.3)',
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #E64A19 30%, #F57C00 90%)',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 12px 24px rgba(255, 107, 53, 0.4)',
+                },
+                '&:disabled': {
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  color: 'rgba(255, 255, 255, 0.5)',
+                }
               }}
             >
               {loading ? 'Creating Account...' : 'Create Account'}
             </Button>
             
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="body2" color="text.secondary">
+              <Typography 
+                variant="body2" 
+                sx={{
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                }}
+              >
                 Already have an account?{' '}
                 <Button 
                   variant="text" 
@@ -382,7 +477,13 @@ const Register: React.FC = () => {
                   sx={{ 
                     fontSize: { xs: '0.9rem', sm: '1rem' },
                     p: 0,
-                    minWidth: 'auto'
+                    minWidth: 'auto',
+                    color: '#2196F3',
+                    textShadow: 'none',
+                    '&:hover': {
+                      background: 'rgba(33, 150, 243, 0.1)',
+                      transform: 'translateY(-1px)',
+                    }
                   }}
                 >
                   Sign in

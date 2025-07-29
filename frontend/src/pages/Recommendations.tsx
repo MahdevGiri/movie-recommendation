@@ -14,6 +14,7 @@ import {
   Alert
 } from '@mui/material';
 import api from '../services/api';
+import MovieImage from '../components/MovieImage';
 
 interface Recommendation {
   movie_id: number;
@@ -25,6 +26,9 @@ interface Recommendation {
   hybrid_score?: number;
   rating?: number;
   reason?: string;
+  poster_url?: string;
+  trailer_url?: string;
+  description?: string;
 }
 
 interface RecommendationResponse {
@@ -82,7 +86,11 @@ const Recommendations: React.FC = () => {
         gutterBottom
         sx={{ 
           fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.5rem' },
-          textAlign: { xs: 'center', sm: 'left' }
+          textAlign: { xs: 'center', sm: 'left' },
+          color: 'rgba(255, 255, 255, 0.95)',
+          fontWeight: 600,
+          textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+          animation: 'fadeInUp 0.6s ease-out'
         }}
       >
         🎯 Personalized Recommendations
@@ -90,110 +98,118 @@ const Recommendations: React.FC = () => {
       
       <Typography 
         variant="body1" 
-        color="text.secondary" 
         sx={{ 
           mb: 3,
           fontSize: { xs: '1rem', sm: '1.1rem' },
-          textAlign: { xs: 'center', sm: 'left' }
+          textAlign: { xs: 'center', sm: 'left' },
+          color: 'rgba(255, 255, 255, 0.8)',
+          textShadow: '0 1px 2px rgba(0,0,0,0.3)'
         }}
       >
-        Choose your preferred recommendation style:
+        Discover movies tailored to your taste using our advanced recommendation algorithms.
       </Typography>
 
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        mb: 4,
-        flexDirection: { xs: 'column', sm: 'row' },
-        gap: 2
-      }}>
+      {/* Recommendation Type Toggle */}
+      <Box sx={{ mb: 3, textAlign: 'center' }}>
         <ToggleButtonGroup
           value={recommendationType}
           exclusive
           onChange={handleRecommendationTypeChange}
-          aria-label="recommendation type"
-          size="large"
+          sx={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: 2,
+            '& .MuiToggleButton-root': {
+              color: 'rgba(255, 255, 255, 0.8)',
+              border: 'none',
+              '&.Mui-selected': {
+                background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                color: 'white',
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
+                }
+              },
+              '&:hover': {
+                background: 'rgba(255, 255, 255, 0.1)',
+              }
+            }
+          }}
         >
-          <ToggleButton value="collaborative" aria-label="collaborative">
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                Smart Recommendations
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Based on similar users + your genre preference
-              </Typography>
-            </Box>
+          <ToggleButton value="collaborative">
+            🤝 Collaborative
           </ToggleButton>
-          <ToggleButton value="genre-focused" aria-label="genre-focused">
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                Genre Focused
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Top rated movies in your preferred genre
-              </Typography>
-            </Box>
+          <ToggleButton value="genre-focused">
+            🎭 Genre-Focused
           </ToggleButton>
         </ToggleButtonGroup>
       </Box>
 
+      {/* Algorithm Info */}
       {recommendationInfo && (
-        <Alert 
-          severity="info" 
-          sx={{ 
-            mb: 3,
-            '& .MuiAlert-message': {
-              width: '100%'
-            }
-          }}
-        >
-          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1, alignItems: { xs: 'flex-start', sm: 'center' } }}>
-            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-              {recommendationInfo.algorithm_info}
+        <Box sx={{ mb: 3, animation: 'fadeInUp 0.6s ease-out 0.2s both' }}>
+          <Alert 
+            severity="info" 
+            sx={{ 
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              color: 'rgba(255, 255, 255, 0.9)',
+              '& .MuiAlert-icon': {
+                color: '#2196F3'
+              }
+            }}
+          >
+            <Typography variant="body2">
+              <strong>Algorithm:</strong> {recommendationInfo.algorithm_info}
+              {recommendationInfo.user_preferred_genre && (
+                <span> • <strong>Preferred Genre:</strong> {recommendationInfo.user_preferred_genre}</span>
+              )}
             </Typography>
-            {recommendationInfo.user_preferred_genre && (
-              <Chip 
-                label={`Preferred: ${recommendationInfo.user_preferred_genre}`} 
-                color="primary" 
-                size="small"
-              />
-            )}
-          </Box>
-        </Alert>
-      )}
-
-      {loading && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-          <CircularProgress />
+          </Alert>
         </Box>
       )}
-
+      
+      {loading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <CircularProgress 
+            size={60}
+            sx={{
+              color: '#2196F3',
+              '& .MuiCircularProgress-circle': {
+                strokeLinecap: 'round',
+              }
+            }}
+          />
+        </Box>
+      )}
+      
       {error && (
-        <Typography color="error" sx={{ textAlign: 'center', mt: 2 }}>
+        <Typography 
+          sx={{ 
+            textAlign: 'center', 
+            mt: 2,
+            color: '#ff6b6b',
+            textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+          }}
+        >
           {error}
         </Typography>
       )}
-
+      
       {!loading && !error && recommendations.length === 0 && (
-        <Box sx={{ textAlign: 'center', mt: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            No recommendations found
-          </Typography>
-          <Typography color="text.secondary" sx={{ mb: 3 }}>
-            Rate more movies to get personalized recommendations!
-          </Typography>
-          <Button 
-            variant="contained" 
-            href="/movies"
-            sx={{ 
-              fontSize: { xs: '0.9rem', sm: '1rem' }
-            }}
-          >
-            Browse Movies
-          </Button>
-        </Box>
+        <Typography 
+          sx={{ 
+            textAlign: 'center', 
+            mt: 4,
+            color: 'rgba(255, 255, 255, 0.8)',
+            textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+          }}
+        >
+          No recommendations available. Try rating some movies first!
+        </Typography>
       )}
-
+      
       {!loading && !error && recommendations.length > 0 && (
         <Grid container spacing={{ xs: 1, sm: 2, md: 3 }} sx={{ mt: 2 }}>
           {recommendations.map((rec, index) => (
@@ -203,47 +219,38 @@ const Recommendations: React.FC = () => {
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
-                  transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`,
                   '&:hover': {
-                    transform: 'translateY(-2px)',
-                    boxShadow: 4
+                    transform: 'translateY(-8px) scale(1.02)',
+                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
+                    border: '1px solid rgba(255, 255, 255, 0.4)',
                   }
                 }}
               >
-                <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    mb: 1,
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    gap: { xs: 0.5, sm: 1 }
-                  }}>
-                    <Typography 
-                      variant="h6" 
-                      sx={{ 
-                        fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
-                        lineHeight: 1.2,
-                        textAlign: { xs: 'center', sm: 'left' }
-                      }}
-                    >
-                      #{index + 1}
-                    </Typography>
-                    {rec.reason && (
-                      <Chip 
-                        label={rec.reason} 
-                        size="small" 
-                        color="secondary"
-                        sx={{ fontSize: '0.7rem' }}
-                      />
-                    )}
-                  </Box>
-                  
+                <MovieImage
+                  posterUrl={rec.poster_url}
+                  title={rec.title}
+                  genre={rec.genre}
+                  year={rec.year}
+                  height={200}
+                  sx={{
+                    borderTopLeftRadius: 12,
+                    borderTopRightRadius: 12,
+                  }}
+                />
+                <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 2 }}>
                   <Typography 
                     variant="h6" 
                     sx={{ 
                       fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
                       mb: 1,
-                      lineHeight: 1.2
+                      lineHeight: 1.2,
+                      color: 'rgba(255, 255, 255, 0.95)',
+                      fontWeight: 600
                     }}
                   >
                     {rec.title} ({rec.year})
@@ -251,55 +258,96 @@ const Recommendations: React.FC = () => {
                   
                   <Typography 
                     variant="body2" 
-                    color="text.secondary"
                     sx={{ 
-                      mb: 1,
-                      fontSize: { xs: '0.8rem', sm: '0.9rem' }
+                      mb: 1, 
+                      fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                      color: 'rgba(255, 255, 255, 0.8)'
                     }}
                   >
                     Genre: {rec.genre}
                   </Typography>
                   
-                  {rec.predicted_rating && (
+                  {rec.description && (
                     <Typography 
                       variant="body2" 
-                      color="primary"
                       sx={{ 
+                        mt: 1, 
                         mb: 2,
-                        fontSize: { xs: '0.9rem', sm: '1rem' },
-                        fontWeight: 'bold'
+                        fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                        flexGrow: 1,
+                        overflow: 'hidden',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: 'vertical',
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        lineHeight: 1.4
                       }}
                     >
-                      Predicted Rating: {rec.predicted_rating.toFixed(1)}/5
-                    </Typography>
-                  )}
-
-                  {rec.rating && (
-                    <Typography 
-                      variant="body2" 
-                      color="primary"
-                      sx={{ 
-                        mb: 2,
-                        fontSize: { xs: '0.9rem', sm: '1rem' },
-                        fontWeight: 'bold'
-                      }}
-                    >
-                      Average Rating: {rec.rating.toFixed(1)}/5
+                      {rec.description}
                     </Typography>
                   )}
                   
+                  {/* Prediction Score */}
+                  {(rec.predicted_rating || rec.rating) && (
+                    <Box sx={{ mb: 2 }}>
+                      <Chip
+                        label={`${recommendationType === 'collaborative' ? 'Predicted' : 'Rating'}: ${rec.predicted_rating || rec.rating}/5`}
+                        size="small"
+                        sx={{
+                          background: 'linear-gradient(45deg, #FFD700 30%, #FFA500 90%)',
+                          color: '#2c3e50',
+                          fontWeight: 600,
+                          fontSize: '0.75rem'
+                        }}
+                      />
+                    </Box>
+                  )}
+                  
                   <Box sx={{ marginTop: 'auto' }}>
-                    <Button 
-                      href={`/movies/${rec.movie_id}`} 
-                      size="small"
-                      variant="outlined"
-                      sx={{ 
-                        width: { xs: '100%', sm: 'auto' },
-                        fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                      }}
-                    >
-                      View Details
-                    </Button>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      gap: 1, 
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      width: '100%'
+                    }}>
+                      <Button 
+                        href={`/movies/${rec.movie_id}`} 
+                        size="small"
+                        variant="outlined"
+                        sx={{ 
+                          flex: 1,
+                          fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                          borderColor: 'rgba(255, 255, 255, 0.3)',
+                          color: 'rgba(255, 255, 255, 0.9)',
+                          '&:hover': {
+                            borderColor: 'rgba(255, 255, 255, 0.6)',
+                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                          }
+                        }}
+                      >
+                        View Details
+                      </Button>
+                      {rec.trailer_url && (
+                        <Button 
+                          href={rec.trailer_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          size="small"
+                          variant="contained"
+                          sx={{ 
+                            flex: 1,
+                            fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                            background: 'linear-gradient(45deg, #FF6B35 30%, #F7931E 90%)',
+                            '&:hover': {
+                              background: 'linear-gradient(45deg, #E64A19 30%, #F57C00 90%)',
+                              transform: 'translateY(-2px)',
+                            }
+                          }}
+                        >
+                          🎬 Trailer
+                        </Button>
+                      )}
+                    </Box>
                   </Box>
                 </CardContent>
               </Card>

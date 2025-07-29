@@ -18,7 +18,7 @@ class DatabaseAdapter:
         Get movies as a pandas DataFrame.
         
         Returns:
-            DataFrame with columns: movie_id, title, genre, year, rating
+            DataFrame with columns: movie_id, title, genre, year, rating, description, poster_url, trailer_url
         """
         movies = self.db_service.get_all_movies()
         
@@ -29,7 +29,10 @@ class DatabaseAdapter:
                 'title': movie.title,
                 'genre': movie.genre,
                 'year': movie.year,
-                'rating': movie.rating
+                'rating': movie.rating,
+                'description': movie.description,
+                'poster_url': movie.poster_url,
+                'trailer_url': movie.trailer_url
             })
         
         return pd.DataFrame(data)

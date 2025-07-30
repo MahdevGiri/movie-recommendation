@@ -2,18 +2,9 @@
  * Image utility functions for handling movie posters and fallbacks
  */
 
-// Multiple image sources to try when original fails
-const IMAGE_SOURCES = {
-  TMDB: 'https://image.tmdb.org/t/p/w500',
-  OMDB: 'https://img.omdbapi.com/?apikey=YOUR_API_KEY&i=',
-  PICSUM: 'https://picsum.photos/300/450?random=',
-  PLACEHOLDER: 'https://via.placeholder.com/300x450'
-};
-
 // Generate a placeholder image URL based on movie title and genre
 export const generatePlaceholderImage = (title: string, genre: string, year: number): string => {
   // Use a service like Picsum for placeholder images
-  const seed = title.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 10);
   const width = 300;
   const height = 450;
   
@@ -49,8 +40,6 @@ export const generatePlaceholderImage = (title: string, genre: string, year: num
 
 // Try to get movie poster from multiple sources
 export const getMoviePosterFromMultipleSources = async (title: string, year: number): Promise<string> => {
-  const searchQuery = encodeURIComponent(`${title} ${year} movie poster`);
-  
   // Try different image search APIs
   const sources = [
     `https://source.unsplash.com/300x450/?movie,poster,${encodeURIComponent(title)}`,

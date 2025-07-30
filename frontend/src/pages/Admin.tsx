@@ -62,7 +62,12 @@ const Admin: React.FC = () => {
   const [selectedGenre, setSelectedGenre] = useState<string>('');
   const [genres, setGenres] = useState<string[]>([]);
 
-  // Check if user is admin
+  useEffect(() => {
+    fetchMovies();
+    fetchGenres();
+  }, [page, searchTerm, selectedGenre]);
+
+  // Check if user is admin - moved after hooks
   if (!user || user.role !== 'admin') {
     return (
       <Box sx={{ p: 3 }}>
@@ -72,11 +77,6 @@ const Admin: React.FC = () => {
       </Box>
     );
   }
-
-  useEffect(() => {
-    fetchMovies();
-    fetchGenres();
-  }, [page, searchTerm, selectedGenre]);
 
   const fetchMovies = async () => {
     try {

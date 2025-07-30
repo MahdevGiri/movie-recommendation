@@ -17,6 +17,7 @@ A modern React TypeScript frontend for the movie recommendation system, built wi
 - **Profile Management**: View and manage user preferences
 - **Session Persistence**: Automatic login state management
 - **Password Strength**: Visual password strength indicator
+- **Role-Based Access**: Admin and user role management
 
 ### 🎬 Movie Features
 - **Movie Browsing**: Browse all movies with pagination
@@ -38,6 +39,7 @@ A modern React TypeScript frontend for the movie recommendation system, built wi
 - **Responsive Design**: Optimized for all screen sizes
 - **Accessibility**: Keyboard navigation and screen reader support
 - **Performance**: Optimized rendering and data fetching
+- **Admin Dashboard**: Full movie management interface for administrators
 
 ## 🏗️ Project Structure
 
@@ -59,7 +61,8 @@ frontend/
 │   │   ├── Recommendations.tsx # Recommendations page
 │   │   ├── Profile.tsx         # User profile page
 │   │   ├── Login.tsx           # Login page
-│   │   └── Register.tsx        # Registration page
+│   │   ├── Register.tsx        # Registration page
+│   │   └── Admin.tsx           # Admin dashboard page
 │   ├── services/               # API services
 │   │   ├── api.ts              # API client configuration
 │   │   ├── auth.ts             # Authentication services
@@ -246,6 +249,35 @@ The app is fully responsive and optimized for:
 - **Rating Details**: Movie information with rating values
 - **Chronological Order**: Sorted by rating date
 - **Quick Actions**: Easy access to rate or re-rate movies
+
+## 👑 Admin Dashboard
+
+### Admin Access
+- **Role-Based Navigation**: Admin link only visible to admin users
+- **Protected Routes**: Server-side verification of admin privileges
+- **Access Control**: Automatic redirect for unauthorized users
+
+### Movie Management
+- **Add Movies**: Create new movies with full details
+- **Edit Movies**: Update existing movie information
+- **Delete Movies**: Remove movies with confirmation
+- **Search & Filter**: Find movies by title or genre
+- **Pagination**: Navigate through large collections
+
+### Admin Interface
+- **Movie Grid**: Visual display of all movies
+- **Action Buttons**: Edit and delete buttons on each movie card
+- **Add Movie Dialog**: Comprehensive form for new movies
+- **Real-time Updates**: Changes reflect immediately
+- **Responsive Design**: Works on all device sizes
+
+### Admin Features
+- **Movie Creation**: Add movies with title, genre, year, description, director, cast, poster URL, trailer URL
+- **Movie Editing**: Update any movie information
+- **Movie Deletion**: Remove movies and their associated ratings
+- **Search Functionality**: Find specific movies by title
+- **Genre Filtering**: View movies by specific genre
+- **Bulk Management**: Handle large collections efficiently
 
 ## 🔧 Technical Implementation
 

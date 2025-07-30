@@ -23,6 +23,7 @@ A comprehensive movie recommendation system with a Python Flask backend and Reac
 - **👤 User Profiles**: Personalized user accounts
 - **⭐ Rating System**: Rate movies and see your history
 - **🎯 Preferences**: Set your preferred movie genre
+- **👑 Admin Panel**: Full movie management system for administrators
 
 ### 📱 Modern UI/UX
 - **📱 Responsive Design**: Works on all devices
@@ -42,6 +43,7 @@ A comprehensive movie recommendation system with a Python Flask backend and Reac
 cd backend
 pip install -r requirements.txt
 python init_database.py
+python create_admin.py  # Create admin user
 python api_server.py
 ```
 
@@ -51,6 +53,14 @@ cd frontend
 npm install
 npm start
 ```
+
+### Admin Access
+1. Start both backend and frontend servers
+2. Open http://localhost:3000 in your browser
+3. Login with admin credentials:
+   - Username: `admin`
+   - Password: `admin123`
+4. Click "Admin" in the navigation to access the admin panel
 
 ## 🎬 Movie Features
 
@@ -145,6 +155,13 @@ npm start
 - `POST /api/auth/login` - User login
 - `GET /api/auth/profile` - Get user profile
 
+### Admin Endpoints (Admin Only)
+- `GET /api/admin/movies` - Get all movies for admin management
+- `POST /api/admin/movies` - Create a new movie
+- `PUT /api/admin/movies/{id}` - Update an existing movie
+- `DELETE /api/admin/movies/{id}` - Delete a movie and its ratings
+- `GET /api/users` - Get all users (admin only)
+
 ## 🎯 Demo Accounts
 
 | Username | Password | Role | Preferred Genre |
@@ -152,6 +169,30 @@ npm start
 | admin    | admin123 | Admin | Drama |
 | alice    | alice123 | User | Drama |
 | bob      | bob123   | User | Action |
+
+## 👑 Admin Functionality
+
+### Admin Dashboard Features
+- **🎬 Movie Management**: Add, edit, and delete movies
+- **🔍 Search & Filter**: Find movies by title or genre
+- **📊 Pagination**: Navigate through large movie collections
+- **🖼️ Rich Media**: Support for poster URLs and trailer links
+- **⚡ Real-time Updates**: Changes reflect immediately
+- **🔒 Role-based Access**: Only admin users can access
+
+### Admin Capabilities
+- **Create Movies**: Add new movies with full details (title, genre, year, description, director, cast, poster URL, trailer URL)
+- **Edit Movies**: Update any movie information
+- **Delete Movies**: Remove movies and their associated ratings
+- **Search Movies**: Find specific movies by title
+- **Filter by Genre**: View movies by specific genre
+- **Bulk Management**: Handle large collections efficiently
+
+### Security Features
+- **JWT Authentication**: Secure token-based authentication
+- **Role Verification**: Server-side admin role checking
+- **Input Validation**: Proper validation for all movie data
+- **Cascade Deletion**: Proper cleanup when deleting movies
 
 ## 🚀 Deployment
 

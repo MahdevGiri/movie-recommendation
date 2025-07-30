@@ -49,7 +49,8 @@ const Navbar: React.FC = () => {
     { text: 'Movies', path: '/movies' },
     ...(user ? [
       { text: 'Recommendations', path: '/recommendations' },
-      { text: 'Profile', path: '/profile' }
+      { text: 'Profile', path: '/profile' },
+      ...(user.role === 'admin' ? [{ text: 'Admin', path: '/admin' }] : [])
     ] : [])
   ];
 
@@ -270,6 +271,25 @@ const Navbar: React.FC = () => {
                   >
                     Profile
                   </Button>
+                  {user.role === 'admin' && (
+                    <Button 
+                      component={RouterLink} 
+                      to="/admin"
+                      sx={{ 
+                        fontSize: { sm: '0.9rem', md: '1rem' },
+                        color: 'rgba(255, 255, 255, 0.9)',
+                        fontWeight: 500,
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                          transform: 'translateY(-2px)',
+                          color: 'rgba(255, 255, 255, 1)',
+                        }
+                      }}
+                    >
+                      Admin
+                    </Button>
+                  )}
                   <Button 
                     onClick={logout}
                     sx={{ 

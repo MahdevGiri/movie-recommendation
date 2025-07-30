@@ -521,23 +521,212 @@ def delete_rating(movie_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# Admin helper function
+def require_admin():
+    """Helper function to require admin access"""
+    user_id = get_jwt_identity()
+    # Convert string to int if needed
+    if isinstance(user_id, str):
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            return False, 'Invalid user ID'
+    
+    current_user = db_service.get_user_by_id(user_id)
+    
+    if not current_user or current_user.role != 'admin':
+        return False, 'Admin access required'
+    return True, current_user
+
 # User management endpoints
 @app.route('/api/users', methods=['GET'])
 @jwt_required()
 def get_users():
     """Get all users (admin only)"""
     try:
-        user_id = get_jwt_identity()
-        current_user = db_service.get_user_by_id(user_id)
-        
-        if current_user.role != 'admin':
-            return jsonify({'error': 'Admin access required'}), 403
+        is_admin, result = require_admin()
+        if not is_admin:
+            return jsonify({'error': result}), 403
         
         users = db_service.get_all_users()
         
         return jsonify({
             'users': users,
             'count': len(users)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Admin movie management endpoints
+@app.route('/api/admin/movies', methods=['POST'])
+@jwt_required()
+def admin_create_movie():
+    """Create a new movie (admin only)"""
+    try:
+        is_admin, current_user = require_admin()
+        if not is_admin:
+            return jsonify({'error': current_user}), 403
+        
+        data = request.get_json()
+        title = data.get('title')
+        genre = data.get('genre')
+        year = data.get('year')
+        description = data.get('description')
+        director = data.get('director')
+        cast = data.get('cast')
+        poster_url = data.get('poster_url')
+        trailer_url = data.get('trailer_url')
+        
+        if not title or not genre or not year:
+            return jsonify({'error': 'Title, genre, and year are required'}), 400
+        
+        # Validate year
+        if not isinstance(year, int) or year < 1900 or year > 2030:
+            return jsonify({'error': 'Year must be between 1900 and 2030'}), 400
+        
+        movie = db_service.create_movie(
+            title=title,
+            genre=genre,
+            year=year,
+            description=description,
+            director=director,
+            cast=cast,
+            poster_url=poster_url,
+            trailer_url=trailer_url
+        )
+        
+        if movie:
+            return jsonify({
+                'message': 'Movie created successfully',
+                'movie': {
+                    'id': movie.id,
+                    'title': movie.title,
+                    'genre': movie.genre,
+                    'year': movie.year,
+                    'description': movie.description,
+                    'director': movie.director,
+                    'cast': movie.cast,
+                    'poster_url': movie.poster_url,
+                    'trailer_url': movie.trailer_url
+                }
+            }), 201
+        else:
+            return jsonify({'error': 'Failed to create movie'}), 500
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/movies/<int:movie_id>', methods=['PUT'])
+@jwt_required()
+def admin_update_movie(movie_id):
+    """Update a movie (admin only)"""
+    try:
+        is_admin, current_user = require_admin()
+        if not is_admin:
+            return jsonify({'error': current_user}), 403
+        
+        data = request.get_json()
+        
+        # Validate required fields if provided
+        if 'year' in data and (not isinstance(data['year'], int) or data['year'] < 1900 or data['year'] > 2030):
+            return jsonify({'error': 'Year must be between 1900 and 2030'}), 400
+        
+        success = db_service.update_movie(movie_id, **data)
+        
+        if success:
+            # Get updated movie
+            movie = db_service.get_movie_by_id(movie_id)
+            return jsonify({
+                'message': 'Movie updated successfully',
+                'movie': {
+                    'id': movie.id,
+                    'title': movie.title,
+                    'genre': movie.genre,
+                    'year': movie.year,
+                    'description': movie.description,
+                    'director': movie.director,
+                    'cast': movie.cast,
+                    'poster_url': movie.poster_url,
+                    'trailer_url': movie.trailer_url
+                }
+            }), 200
+        else:
+            return jsonify({'error': 'Movie not found or update failed'}), 404
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/movies/<int:movie_id>', methods=['DELETE'])
+@jwt_required()
+def admin_delete_movie(movie_id):
+    """Delete a movie (admin only)"""
+    try:
+        is_admin, current_user = require_admin()
+        if not is_admin:
+            return jsonify({'error': current_user}), 403
+        
+        # First check if movie exists
+        movie = db_service.get_movie_by_id(movie_id)
+        if not movie:
+            return jsonify({'error': 'Movie not found'}), 404
+        
+        # Delete associated ratings first
+        session = db_service.get_session()
+        try:
+            # Delete all ratings for this movie
+            ratings = session.query(Rating).filter(Rating.movie_id == movie_id).all()
+            for rating in ratings:
+                session.delete(rating)
+            
+            # Delete the movie
+            session.delete(movie)
+            session.commit()
+            
+            return jsonify({'message': 'Movie deleted successfully'}), 200
+            
+        except Exception as e:
+            session.rollback()
+            return jsonify({'error': f'Failed to delete movie: {str(e)}'}), 500
+        finally:
+            session.close()
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/movies', methods=['GET'])
+@jwt_required()
+def admin_get_movies():
+    """Get all movies with admin details (admin only)"""
+    try:
+        is_admin, current_user = require_admin()
+        if not is_admin:
+            return jsonify({'error': current_user}), 403
+        
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        genre = request.args.get('genre')
+        search = request.args.get('search')
+        
+        movies = db_service.get_movies(page=page, per_page=per_page, genre=genre, search=search)
+        
+        # Get total count for pagination
+        session = db_service.get_session()
+        query = session.query(Movie)
+        if genre:
+            query = query.filter(Movie.genre == genre)
+        if search:
+            query = query.filter(Movie.title.ilike(f'%{search}%'))
+        total = query.count()
+        session.close()
+        
+        return jsonify({
+            'movies': movies,
+            'pagination': {
+                'page': page,
+                'per_page': per_page,
+                'total': total
+            }
         }), 200
         
     except Exception as e:

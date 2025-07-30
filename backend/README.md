@@ -10,6 +10,7 @@ A Python Flask-based REST API for a movie recommendation system with JWT authent
 - **CORS Support**: Cross-origin resource sharing enabled
 - **Input Validation**: Server-side validation of all inputs
 - **SQL Injection Protection**: Parameterized queries with SQLAlchemy
+- **Role-Based Access Control**: Admin and user role management
 
 ### 🎯 Recommendation Algorithms
 - **Collaborative Filtering**: Based on similar users' preferences
@@ -98,6 +99,13 @@ The API will be available at: **http://localhost:5000**
 - `GET /api/recommendations/genre-focused` - Get top-rated movies in preferred genre
 - `GET /api/recommendations/popular` - Get popular movies
 
+### Admin Endpoints (Admin Only)
+- `GET /api/admin/movies` - Get all movies for admin management
+- `POST /api/admin/movies` - Create a new movie
+- `PUT /api/admin/movies/{id}` - Update an existing movie
+- `DELETE /api/admin/movies/{id}` - Delete a movie and its ratings
+- `GET /api/users` - Get all users (admin only)
+
 ## 🔧 Development
 
 ### Available Scripts
@@ -105,6 +113,7 @@ The API will be available at: **http://localhost:5000**
 ```bash
 python api_server.py          # Start development server
 python init_database.py       # Initialize database
+python create_admin.py        # Create admin user
 python test_login.py          # Run authentication tests
 ```
 
@@ -125,6 +134,7 @@ The following environment variables can be configured:
 - `email`: User email
 - `preferred_genre`: User's preferred movie genre
 - `age`: User age
+- `role`: User role (user/admin)
 - `created_at`: Account creation timestamp
 
 #### Movies Table
@@ -203,6 +213,7 @@ The system includes comprehensive sample data:
 - **SQL Injection Protection**: Parameterized queries with SQLAlchemy
 - **CORS Configuration**: Proper cross-origin resource sharing
 - **Error Handling**: Secure error responses without information leakage
+- **Role-Based Access Control**: Admin endpoints protected by role verification
 
 ## 🧪 Testing
 
@@ -217,6 +228,30 @@ The tests verify:
 - JWT token validation
 - Profile access
 - Error handling
+
+## 👑 Admin Functionality
+
+### Admin User Setup
+```bash
+python create_admin.py
+```
+This creates an admin user with:
+- Username: `admin`
+- Password: `admin123`
+- Role: `admin`
+
+### Admin Features
+- **Movie Management**: Full CRUD operations for movies
+- **User Management**: View all users in the system
+- **Role-Based Access**: Only admin users can access admin endpoints
+- **Input Validation**: Comprehensive validation for movie data
+- **Cascade Deletion**: Proper cleanup when deleting movies
+
+### Admin Security
+- **JWT Token Verification**: All admin endpoints require valid JWT tokens
+- **Role Verification**: Server-side checking of user role
+- **Input Sanitization**: All inputs are validated and sanitized
+- **Error Handling**: Secure error responses for unauthorized access
 
 ## 🚀 Deployment
 

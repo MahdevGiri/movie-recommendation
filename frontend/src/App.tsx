@@ -11,6 +11,7 @@ import Movies from './pages/Movies';
 import Recommendations from './pages/Recommendations';
 import Profile from './pages/Profile';
 import MovieDetail from './pages/MovieDetail';
+import Admin from './pages/Admin';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -64,6 +65,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Profile />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin" 
+                element={
+                  <ProtectedRoute>
+                    <Admin />
                   </ProtectedRoute>
                 } 
               />

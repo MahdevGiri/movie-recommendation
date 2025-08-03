@@ -46,6 +46,7 @@ def demo_login_system():
                 continue
                 
             name = input("Full Name: ").strip()
+            email = input("Email: ").strip()
             try:
                 age = int(input("Age: "))
             except ValueError:
@@ -53,7 +54,7 @@ def demo_login_system():
                 continue
                 
             preferred_genre = input("Preferred Genre: ").strip()
-            auth.register_user(username, password, name, age, preferred_genre)
+            auth.register_user(username, password, name, age, preferred_genre, email)
             
         elif choice == "3":
             auth.display_user_info()

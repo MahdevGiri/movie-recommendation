@@ -15,8 +15,8 @@ class User(Base):
     username = Column(String(50), unique=True, index=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
     name = Column(String(100), nullable=False)
-    email = Column(String(100), unique=True, index=True, nullable=True)
-    age = Column(Integer, nullable=True)
+    email = Column(String(100), unique=True, index=True, nullable=False)
+    age = Column(Integer, nullable=False)
     preferred_genre = Column(String(50), nullable=True)
     role = Column(String(20), default="user")  # user, admin
     created_at = Column(DateTime(timezone=True), server_default=func.now())

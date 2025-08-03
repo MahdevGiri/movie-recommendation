@@ -90,12 +90,16 @@ const Register: React.FC = () => {
     }
 
     // Email validation
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
     // Age validation
-    if (formData.age) {
+    if (!formData.age.trim()) {
+      newErrors.age = 'Age is required';
+    } else {
       const age = parseInt(formData.age);
       if (isNaN(age) || age < 13 || age > 120) {
         newErrors.age = 'Age must be between 13 and 120';
@@ -117,7 +121,7 @@ const Register: React.FC = () => {
     try {
       await register({
         ...formData,
-        age: formData.age ? parseInt(formData.age) : undefined
+        age: parseInt(formData.age)
       });
       // Redirect to home page after successful registration
       navigate('/');
@@ -278,9 +282,10 @@ const Register: React.FC = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   margin="normal"
+                  required
                   fullWidth
                   id="email"
-                  label="Email (Optional)"
+                  label="Email"
                   name="email"
                   autoComplete="email"
                   value={formData.email}
@@ -294,9 +299,10 @@ const Register: React.FC = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   margin="normal"
+                  required
                   fullWidth
                   id="age"
-                  label="Age (Optional)"
+                  label="Age"
                   name="age"
                   type="number"
                   value={formData.age}

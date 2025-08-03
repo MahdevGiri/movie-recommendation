@@ -45,9 +45,7 @@ def main():
     print("   python main.py")
     print("\nDefault login credentials:")
     print("   Username: admin, Password: admin123")
-    print("   Username: alice, Password: alice123")
     print("   Username: bob, Password: bob123")
-    print("   Username: charlie, Password: charlie123")
     
     return True
 

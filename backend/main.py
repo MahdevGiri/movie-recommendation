@@ -193,6 +193,11 @@ def handle_register(auth_system):
         print("❌ Name cannot be empty!")
         return
     
+    email = input("Email: ").strip()
+    if not email:
+        print("❌ Email cannot be empty!")
+        return
+    
     try:
         age = int(input("Age: "))
     except ValueError:
@@ -219,7 +224,7 @@ def handle_register(auth_system):
         return
     
     # Register the user
-    if auth_system.register_user(username, password, name, age, preferred_genre):
+    if auth_system.register_user(username, password, name, age, preferred_genre, email):
         # Automatically log in the newly registered user
         print("🔄 Automatically logging you in...")
         auth_system.login(username, password)

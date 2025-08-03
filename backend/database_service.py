@@ -137,6 +137,29 @@ class DatabaseService:
         finally:
             session.close()
     
+    def delete_user(self, user_id: int) -> bool:
+        """Delete a user and all their ratings."""
+        session = self.get_session()
+        try:
+            user = session.query(User).filter(User.id == user_id).first()
+            if not user:
+                return False
+            
+            # Delete all ratings by this user first (cascade)
+            session.query(Rating).filter(Rating.user_id == user_id).delete()
+            
+            # Delete the user
+            session.delete(user)
+            session.commit()
+            return True
+            
+        except Exception as e:
+            session.rollback()
+            print(f"Error deleting user: {e}")
+            return False
+        finally:
+            session.close()
+    
     # Movie Operations
     def create_movie(self, title: str, genre: str, year: int, 
                     rating: Optional[float] = None, description: Optional[str] = None,

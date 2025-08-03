@@ -23,6 +23,7 @@ from datetime import datetime, timedelta
 import json
 import hashlib
 import pandas as pd
+import re
 
 # Import existing modules
 from recommendation_system import MovieRecommendationSystem
@@ -123,34 +124,48 @@ def register():
         age = data.get('age')
         preferred_genre = data.get('preferred_genre', 'Drama')
         
-        if not username or not password or not name:
-            return jsonify({'error': 'Username, password, and name are required'}), 400
+        if not username or not password or not name or not email or age is None:
+            return jsonify({'error': 'Username, password, name, email, and age are required'}), 400
+        
+        # Validate email format
+        if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
+            return jsonify({'error': 'Please enter a valid email address'}), 400
+        
+        # Validate age
+        if not isinstance(age, int) or age < 13 or age > 120:
+            return jsonify({'error': 'Age must be between 13 and 120'}), 400
         
         # Use existing auth system
         registration_success = auth_system.register_user(username, password, name, age, preferred_genre, email)
         
         if registration_success:
-            # Get the newly created user
-            user = auth_system.get_current_user()
-            if not user:
-                # If not logged in, get user by username
+            # Automatically log in the newly registered user
+            login_success = auth_system.login(username, password)
+            if login_success:
+                user = auth_system.get_current_user()
+            else:
+                # Fallback: get user by username if login fails
                 user = db_service.get_user_by_username(username)
-            # Create JWT token (identity must be a string)
-            access_token = create_access_token(identity=str(user.id))
             
-            return jsonify({
-                'message': 'Registration successful',
-                'user': {
-                    'id': user.id,
-                    'username': user.username,
-                    'name': user.name,
-                    'email': user.email,
-                    'age': user.age,
-                    'preferred_genre': user.preferred_genre,
-                    'role': user.role
-                },
-                'access_token': access_token
-            }), 201
+            if user:
+                # Create JWT token (identity must be a string)
+                access_token = create_access_token(identity=str(user.id))
+                
+                return jsonify({
+                    'message': 'Registration successful',
+                    'user': {
+                        'id': user.id,
+                        'username': user.username,
+                        'name': user.name,
+                        'email': user.email,
+                        'age': user.age,
+                        'preferred_genre': user.preferred_genre,
+                        'role': user.role
+                    },
+                    'access_token': access_token
+                }), 201
+            else:
+                return jsonify({'error': 'Registration successful but failed to log in user'}), 500
         else:
             return jsonify({'error': 'Username already exists'}), 409
             
@@ -335,6 +350,10 @@ def get_personalized_recommendations():
         # Get user info for context
         user = db_service.get_user_by_id(user_id)
         
+        # Check if user is admin - admins don't get recommendations
+        if user.role == 'admin':
+            return jsonify({'error': 'Admin users do not have access to movie recommendations'}), 403
+        
         recommendations = recommender.get_collaborative_filtering_recommendations(user_id, limit)
         
         return jsonify({
@@ -360,6 +379,11 @@ def get_genre_focused_recommendations():
         
         # Get user info
         user = db_service.get_user_by_id(user_id)
+        
+        # Check if user is admin - admins don't get recommendations
+        if user.role == 'admin':
+            return jsonify({'error': 'Admin users do not have access to movie recommendations'}), 403
+        
         preferred_genre = user.preferred_genre
         
         # Get movies in user's preferred genre, sorted by rating
@@ -419,6 +443,13 @@ def get_hybrid_recommendations():
         user_id = get_jwt_identity()
         movie_id = request.args.get('movie_id', type=int)
         limit = request.args.get('limit', 5, type=int)
+        
+        # Get user info to check role
+        user = db_service.get_user_by_id(int(user_id))
+        
+        # Check if user is admin - admins don't get recommendations
+        if user.role == 'admin':
+            return jsonify({'error': 'Admin users do not have access to movie recommendations'}), 403
         
         recommendations = recommender.get_hybrid_recommendations(user_id, movie_id, limit)
         
@@ -550,11 +581,116 @@ def get_users():
         
         users = db_service.get_all_users()
         
+        # Convert users to serializable format
+        user_list = []
+        for user in users:
+            user_list.append({
+                'id': user.id,
+                'username': user.username,
+                'name': user.name,
+                'email': user.email,
+                'age': user.age,
+                'preferred_genre': user.preferred_genre,
+                'role': user.role,
+                'created_at': user.created_at.isoformat() if user.created_at else None
+            })
+        
         return jsonify({
-            'users': users,
-            'count': len(users)
+            'users': user_list,
+            'count': len(user_list)
         }), 200
         
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/users', methods=['POST'])
+@jwt_required()
+def admin_create_user():
+    """Create a new user (admin only)"""
+    try:
+        is_admin, current_user = require_admin()
+        if not is_admin:
+            return jsonify({'error': current_user}), 403
+        
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+        name = data.get('name')
+        email = data.get('email')
+        age = data.get('age')
+        preferred_genre = data.get('preferred_genre', 'Drama')
+        role = data.get('role', 'user')
+        
+        if not username or not password or not name or not email or age is None:
+            return jsonify({'error': 'Username, password, name, email, and age are required'}), 400
+        
+        # Validate email format
+        if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
+            return jsonify({'error': 'Please enter a valid email address'}), 400
+        
+        # Validate age
+        if not isinstance(age, int) or age < 13 or age > 120:
+            return jsonify({'error': 'Age must be between 13 and 120'}), 400
+        
+        # Validate role
+        if role not in ['user', 'admin']:
+            return jsonify({'error': 'Role must be either "user" or "admin"'}), 400
+        
+        user = db_service.create_user(
+            username=username,
+            password=password,
+            name=name,
+            email=email,
+            age=age,
+            preferred_genre=preferred_genre,
+            role=role
+        )
+        
+        if user:
+            return jsonify({
+                'message': 'User created successfully',
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'name': user.name,
+                    'email': user.email,
+                    'age': user.age,
+                    'preferred_genre': user.preferred_genre,
+                    'role': user.role
+                }
+            }), 201
+        else:
+            return jsonify({'error': 'Username or email already exists'}), 409
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/users/<int:user_id>', methods=['DELETE'])
+@jwt_required()
+def admin_delete_user(user_id):
+    """Delete a user (admin only)"""
+    try:
+        is_admin, current_user = require_admin()
+        if not is_admin:
+            return jsonify({'error': current_user}), 403
+        
+        # Prevent admin from deleting themselves
+        if user_id == current_user.id:
+            return jsonify({'error': 'Cannot delete your own account'}), 400
+        
+        # Check if user exists
+        user = db_service.get_user_by_id(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        # Delete user (this will cascade to ratings)
+        success = db_service.delete_user(user_id)
+        
+        if success:
+            return jsonify({'message': 'User deleted successfully'}), 200
+        else:
+            return jsonify({'error': 'Failed to delete user'}), 500
+            
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

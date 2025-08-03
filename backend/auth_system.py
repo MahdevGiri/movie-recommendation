@@ -32,7 +32,7 @@ class AuthSystem:
         """
         return hashlib.sha256(password.encode()).hexdigest()
     
-    def register_user(self, username: str, password: str, name: str, age: int, preferred_genre: str, email: Optional[str] = None) -> bool:
+    def register_user(self, username: str, password: str, name: str, age: int, preferred_genre: str, email: str) -> bool:
         """
         Register a new user.
         
@@ -42,7 +42,7 @@ class AuthSystem:
             name: User's full name
             age: User's age
             preferred_genre: User's preferred movie genre
-            email: User's email (optional)
+            email: User's email (required)
             
         Returns:
             True if registration successful, False otherwise

@@ -225,7 +225,15 @@ def seed_database():
     print("\n👥 Seeding users...")
     users_data = [
         ("admin", "admin123", "Administrator", "admin@example.com", 30, "Drama", "admin"),
+        ("alice", "alice123", "Alice Johnson", "alice@example.com", 25, "Drama", "user"),
         ("bob", "bob123", "Bob Smith", "bob@example.com", 30, "Action", "user"),
+        ("charlie", "charlie123", "Charlie Brown", "charlie@example.com", 35, "Sci-Fi", "user"),
+        ("diana", "diana123", "Diana Prince", "diana@example.com", 28, "Romance", "user"),
+        ("eve", "eve123", "Eve Wilson", "eve@example.com", 22, "Horror", "user"),
+        ("frank", "frank123", "Frank Miller", "frank@example.com", 40, "Crime", "user"),
+        ("grace", "grace123", "Grace Kelly", "grace@example.com", 27, "Comedy", "user"),
+        ("henry", "henry123", "Henry Ford", "henry@example.com", 33, "Action", "user"),
+        ("ivy", "ivy123", "Ivy Chen", "ivy@example.com", 29, "Drama", "user"),
 
     ]
     

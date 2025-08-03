@@ -42,10 +42,12 @@ def main():
     print("\n🎉 DATABASE INITIALIZATION COMPLETED!")
     print("=" * 50)
     print("You can now run the movie recommendation system:")
-    print("   python main.py")
+    print("   python api_server.py")
     print("\nDefault login credentials:")
     print("   Username: admin, Password: admin123")
+    print("   Username: alice, Password: alice123")
     print("   Username: bob, Password: bob123")
+    print("   Username: charlie, Password: charlie123")
     
     return True
 

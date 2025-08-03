@@ -1,8 +1,6 @@
 import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.decomposition import TruncatedSVD
 from database_adapter import DatabaseAdapter
 
 class MovieRecommendationSystem:
@@ -273,6 +271,59 @@ class MovieRecommendationSystem:
                 predicted_rating = min(predicted_rating, 5.0)
                 
                 movie_scores[movie_id] = predicted_rating
+        
+        # If no collaborative filtering predictions were made (no similar users),
+        # fall back to content-based recommendations based on user's rated movies
+        if not movie_scores:
+            # Get user's rated movies and their genres
+            user_rated_movies = target_user_ratings[target_user_ratings > 0]
+            user_genres = {}
+            
+            for movie_id, rating in user_rated_movies.items():
+                movie_info = self.movies_df[self.movies_df['movie_id'] == movie_id].iloc[0]
+                genre = movie_info['genre']
+                if genre not in user_genres:
+                    user_genres[genre] = []
+                user_genres[genre].append(rating)
+            
+            # Calculate average rating per genre
+            genre_avg_ratings = {}
+            for genre, ratings in user_genres.items():
+                genre_avg_ratings[genre] = sum(ratings) / len(ratings)
+            
+            # Sort genres by average rating (highest first)
+            sorted_genres = sorted(genre_avg_ratings.items(), key=lambda x: x[1], reverse=True)
+            
+            # Get movies in user's preferred genres, excluding already rated movies
+            for genre, avg_rating in sorted_genres:
+                genre_movies = self.movies_df[
+                    (self.movies_df['genre'] == genre) & 
+                    (~self.movies_df['movie_id'].isin(user_rated_movies.index))
+                ]
+                
+                if len(genre_movies) > 0:
+                    # Sort by overall rating and take top movies
+                    top_genre_movies = genre_movies.nlargest(n_recommendations, 'rating')
+                    
+                    for _, movie in top_genre_movies.iterrows():
+                        movie_id = movie['movie_id']
+                        # Use the average rating for this genre as predicted rating
+                        predicted_rating = min(avg_rating, 5.0)
+                        movie_scores[movie_id] = predicted_rating
+                    
+                    # If we have enough recommendations, break
+                    if len(movie_scores) >= n_recommendations:
+                        break
+            
+            # If still no recommendations, fall back to popular movies in preferred genre
+            if not movie_scores:
+                genre_movies = self.movies_df[self.movies_df['genre'] == preferred_genre]
+                if len(genre_movies) > 0:
+                    top_movies = genre_movies.nlargest(n_recommendations, 'rating')
+                    for _, movie in top_movies.iterrows():
+                        movie_id = movie['movie_id']
+                        if movie_id not in user_rated_movies.index:  # Don't recommend already rated movies
+                            movie_scores[movie_id] = min(movie['rating'], 5.0)
         
         # Sort movies by predicted rating (highest first)
         sorted_movies = sorted(movie_scores.items(), key=lambda x: x[1], reverse=True)

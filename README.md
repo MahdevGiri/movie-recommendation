@@ -43,10 +43,10 @@ A comprehensive movie recommendation system with a Python Flask backend and Reac
 
 ### Backend Setup
 ```bash
+create database named 'movie_recommendation'
 cd backend
 pip install -r requirements.txt
 python init_database.py
-python create_admin.py  # Create admin user
 python api_server.py
 ```
 

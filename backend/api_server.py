@@ -556,17 +556,30 @@ def delete_rating(movie_id):
 def require_admin():
     """Helper function to require admin access"""
     user_id = get_jwt_identity()
+    print(f"🔧 require_admin: user_id from JWT: {user_id}")
+    
     # Convert string to int if needed
     if isinstance(user_id, str):
         try:
             user_id = int(user_id)
+            print(f"🔧 require_admin: converted user_id to int: {user_id}")
         except ValueError:
+            print(f"🔧 require_admin: failed to convert user_id to int")
             return False, 'Invalid user ID'
     
     current_user = db_service.get_user_by_id(user_id)
+    print(f"🔧 require_admin: current_user: {current_user}")
     
-    if not current_user or current_user.role != 'admin':
+    if not current_user:
+        print(f"🔧 require_admin: user not found")
+        return False, 'User not found'
+    
+    print(f"🔧 require_admin: user role: {current_user.role}")
+    if current_user.role != 'admin':
+        print(f"🔧 require_admin: user is not admin")
         return False, 'Admin access required'
+    
+    print(f"🔧 require_admin: admin access granted")
     return True, current_user
 
 # User management endpoints
@@ -700,11 +713,16 @@ def admin_delete_user(user_id):
 def admin_create_movie():
     """Create a new movie (admin only)"""
     try:
+        print(f"🔧 Admin create movie request received")
         is_admin, current_user = require_admin()
+        print(f"🔧 Admin check result: {is_admin}, User: {current_user}")
+        
         if not is_admin:
             return jsonify({'error': current_user}), 403
         
         data = request.get_json()
+        print(f"🔧 Movie data received: {data}")
+        
         title = data.get('title')
         genre = data.get('genre')
         year = data.get('year')
@@ -713,6 +731,7 @@ def admin_create_movie():
         cast = data.get('cast')
         poster_url = data.get('poster_url')
         trailer_url = data.get('trailer_url')
+        rating = data.get('rating', 0)  # Default to 0 if no rating provided
         
         if not title or not genre or not year:
             return jsonify({'error': 'Title, genre, and year are required'}), 400
@@ -721,10 +740,16 @@ def admin_create_movie():
         if not isinstance(year, int) or year < 1900 or year > 2030:
             return jsonify({'error': 'Year must be between 1900 and 2030'}), 400
         
+        # Validate rating
+        if rating is not None and (not isinstance(rating, (int, float)) or rating < 0 or rating > 5):
+            return jsonify({'error': 'Rating must be between 0 and 5'}), 400
+        
+        print(f"🔧 Creating movie: {title} ({year}) with rating: {rating}")
         movie = db_service.create_movie(
             title=title,
             genre=genre,
             year=year,
+            rating=rating,
             description=description,
             director=director,
             cast=cast,
@@ -733,6 +758,7 @@ def admin_create_movie():
         )
         
         if movie:
+            print(f"🔧 Movie created successfully with ID: {movie.id}")
             return jsonify({
                 'message': 'Movie created successfully',
                 'movie': {
@@ -748,9 +774,11 @@ def admin_create_movie():
                 }
             }), 201
         else:
+            print(f"🔧 Failed to create movie")
             return jsonify({'error': 'Failed to create movie'}), 500
             
     except Exception as e:
+        print(f"🔧 Error in admin_create_movie: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/admin/movies/<int:movie_id>', methods=['PUT'])
@@ -758,21 +786,36 @@ def admin_create_movie():
 def admin_update_movie(movie_id):
     """Update a movie (admin only)"""
     try:
+        print(f"🔧 Admin update movie request received for movie_id: {movie_id}")
         is_admin, current_user = require_admin()
+        print(f"🔧 Admin check result: {is_admin}, User: {current_user}")
+        
         if not is_admin:
             return jsonify({'error': current_user}), 403
         
         data = request.get_json()
+        print(f"🔧 Update data received: {data}")
         
         # Validate required fields if provided
         if 'year' in data and (not isinstance(data['year'], int) or data['year'] < 1900 or data['year'] > 2030):
             return jsonify({'error': 'Year must be between 1900 and 2030'}), 400
         
+        # Validate rating if provided
+        if 'rating' in data:
+            rating = data['rating']
+            if rating is not None and (not isinstance(rating, (int, float)) or rating < 0 or rating > 5):
+                return jsonify({'error': 'Rating must be between 0 and 5'}), 400
+            # If rating is None, set it to 0 to avoid NaN issues
+            if rating is None:
+                data['rating'] = 0
+        
+        print(f"🔧 Updating movie {movie_id}")
         success = db_service.update_movie(movie_id, **data)
         
         if success:
             # Get updated movie
             movie = db_service.get_movie_by_id(movie_id)
+            print(f"🔧 Movie updated successfully")
             return jsonify({
                 'message': 'Movie updated successfully',
                 'movie': {
@@ -788,9 +831,11 @@ def admin_update_movie(movie_id):
                 }
             }), 200
         else:
+            print(f"🔧 Failed to update movie {movie_id}")
             return jsonify({'error': 'Movie not found or update failed'}), 404
             
     except Exception as e:
+        print(f"🔧 Error in admin_update_movie: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/admin/movies/<int:movie_id>', methods=['DELETE'])
@@ -839,12 +884,20 @@ def admin_get_movies():
         if not is_admin:
             return jsonify({'error': current_user}), 403
         
-        page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 20, type=int)
+        # For admin panel, get all movies without pagination
+        # Only apply pagination if explicitly requested
+        page = request.args.get('page', type=int)
+        per_page = request.args.get('per_page', type=int)
         genre = request.args.get('genre')
         search = request.args.get('search')
         
-        movies = db_service.get_movies(page=page, per_page=per_page, genre=genre, search=search)
+        print(f"🔧 Admin get movies request - page: {page}, per_page: {per_page}, genre: {genre}, search: {search}")
+        
+        # If pagination is not explicitly requested, get all movies
+        if page is None and per_page is None:
+            movies = db_service.get_movies(page=1, per_page=1000, genre=genre, search=search)  # Large limit to get all movies
+        else:
+            movies = db_service.get_movies(page=page or 1, per_page=per_page or 20, genre=genre, search=search)
         
         # Get total count for pagination
         session = db_service.get_session()
@@ -856,16 +909,24 @@ def admin_get_movies():
         total = query.count()
         session.close()
         
+        print(f"🔧 Returning {len(movies)} movies, total: {total}")
+        
+        # Debug: Check if Inception is in the results
+        inception_movies = [m for m in movies if 'inception' in m.get('title', '').lower()]
+        if inception_movies:
+            print(f"🔧 Inception movies found: {inception_movies}")
+        
         return jsonify({
             'movies': movies,
             'pagination': {
-                'page': page,
-                'per_page': per_page,
+                'page': page or 1,
+                'per_page': per_page or len(movies),
                 'total': total
             }
         }), 200
         
     except Exception as e:
+        print(f"🔧 Error in admin_get_movies: {e}")
         return jsonify({'error': str(e)}), 500
 
 # Error handlers

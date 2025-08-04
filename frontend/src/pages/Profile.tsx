@@ -8,23 +8,33 @@ const Profile: React.FC = () => {
   const { user } = useAuth();
   const [ratings, setRatings] = useState<RatingType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchRatings = async () => {
       setLoading(true);
+      setError(null);
       try {
+        console.log('Fetching ratings for user:', user?.id);
         const data = await getUserRatings();
-        console.log('Ratings data:', data); // Debug log
+        console.log('Ratings API response:', data);
         setRatings(data.ratings || []);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching ratings:', error);
+        console.error('Error details:', error.response?.data || error.message);
+        setError(error.response?.data?.error || error.message || 'Failed to fetch ratings');
         setRatings([]);
       } finally {
         setLoading(false);
       }
     };
-    fetchRatings();
-  }, []);
+    
+    if (user) {
+      fetchRatings();
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
 
   return (
     <Container maxWidth="lg" sx={{ mt: { xs: 2, sm: 4 }, mb: 4 }}>
@@ -87,6 +97,19 @@ const Profile: React.FC = () => {
       >
         ⭐ Your Ratings ({ratings.length})
       </Typography>
+      
+      {error && (
+        <Typography 
+          color="error" 
+          sx={{ 
+            textAlign: 'center', 
+            mt: 2,
+            fontSize: { xs: '0.9rem', sm: '1rem' }
+          }}
+        >
+          Error: {error}
+        </Typography>
+      )}
       
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>

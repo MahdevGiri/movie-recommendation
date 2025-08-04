@@ -53,6 +53,11 @@ class MovieRecommendationSystem:
         2. Creates movie similarity matrix using content-based features
         3. Creates user similarity matrix using rating patterns
         """
+        print(f"🔧 Preparing recommendation data...")
+        print(f"🔧 Movies loaded: {len(self.movies_df)}")
+        print(f"🔧 Users loaded: {len(self.users_df)}")
+        print(f"🔧 Ratings loaded: {len(self.ratings_df)}")
+        
         # Create user-movie rating matrix (pivot table)
         # Rows: users, Columns: movies, Values: ratings
         # Fill NaN values with 0 (unrated movies)
@@ -62,9 +67,14 @@ class MovieRecommendationSystem:
             values='rating'
         ).fillna(0)
         
+        print(f"🔧 User-movie matrix created: {self.user_movie_matrix.shape}")
+        
         # Create similarity matrices for different recommendation approaches
+        print(f"🔧 Creating movie similarity matrix...")
         self._create_movie_similarity_matrix()  # For content-based filtering
+        print(f"🔧 Creating user similarity matrix...")
         self._create_user_similarity_matrix()   # For collaborative filtering
+        print(f"🔧 Data preparation complete!")
     
     def refresh_data(self):
         """
@@ -96,6 +106,12 @@ class MovieRecommendationSystem:
         # Create feature matrix for movies (genre-based)
         movie_features = self.movies_df.copy()
         
+        # Handle NaN values in rating field - replace with 0 or mean rating
+        if movie_features['rating'].isna().any():
+            print(f"🔧 Found {movie_features['rating'].isna().sum()} movies with NaN ratings")
+            # Replace NaN ratings with 0 (neutral rating)
+            movie_features['rating'] = movie_features['rating'].fillna(0)
+        
         # Create genre dummy variables (one-hot encoding)
         # This converts categorical genre into numerical features
         genre_dummies = pd.get_dummies(movie_features['genre'], prefix='genre')
@@ -106,8 +122,26 @@ class MovieRecommendationSystem:
         feature_cols = [col for col in movie_features.columns if col.startswith('genre_')]
         feature_cols.append('rating')  # Include overall rating as a feature
         
+        print(f"🔧 Feature columns: {feature_cols}")
+        print(f"🔧 Feature data types: {movie_features[feature_cols].dtypes}")
+        
         # Calculate cosine similarity between all movie pairs
         movie_features_matrix = movie_features[feature_cols].values
+        
+        # Ensure the matrix is numeric and handle any non-numeric data
+        try:
+            # Convert to numeric, coercing errors to NaN
+            movie_features_matrix = pd.DataFrame(movie_features_matrix, columns=feature_cols).astype(float).values
+        except (ValueError, TypeError) as e:
+            print(f"🔧 Error converting movie features to numeric: {e}")
+            # Fallback: convert to numeric with errors='coerce' and fill NaN with 0
+            movie_features_matrix = pd.DataFrame(movie_features_matrix, columns=feature_cols).apply(pd.to_numeric, errors='coerce').fillna(0).values
+        
+        # Additional check for any remaining NaN values
+        if np.isnan(movie_features_matrix).any():
+            print(f"🔧 Found NaN values in movie features matrix, replacing with 0")
+            movie_features_matrix = np.nan_to_num(movie_features_matrix, nan=0.0)
+        
         self.movie_similarity_matrix = cosine_similarity(movie_features_matrix)
     
     def _create_user_similarity_matrix(self):
@@ -118,9 +152,15 @@ class MovieRecommendationSystem:
         rated the same movies. Users with similar rating patterns will have
         high similarity scores.
         """
+        # Check for any NaN values in user-movie matrix
+        if np.isnan(self.user_movie_matrix.values).any():
+            print(f"🔧 Found NaN values in user-movie matrix, replacing with 0")
+            self.user_movie_matrix = self.user_movie_matrix.fillna(0)
+        
         # Calculate cosine similarity between users based on their rating patterns
         # This creates a matrix where each cell represents similarity between two users
         self.user_similarity_matrix = cosine_similarity(self.user_movie_matrix)
+        print(f"🔧 User similarity matrix created: {self.user_similarity_matrix.shape}")
     
     def get_content_based_recommendations(self, movie_id, n_recommendations=5):
         """

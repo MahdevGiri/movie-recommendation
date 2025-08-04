@@ -237,9 +237,24 @@ class DatabaseService:
             if search:
                 query = query.filter(Movie.title.ilike(f'%{search}%'))
             
+            # Debug: Check total count before pagination
+            total_count = query.count()
+            print(f"🔧 get_movies - Total movies in DB: {total_count}")
+            print(f"🔧 get_movies - Parameters: page={page}, per_page={per_page}, genre={genre}, search={search}")
+            
             # Apply pagination
             offset = (page - 1) * per_page
             movies = query.offset(offset).limit(per_page).all()
+            
+            print(f"🔧 get_movies - Returning {len(movies)} movies (offset={offset}, limit={per_page})")
+            
+            # Debug: Check for Inception specifically
+            all_movies = session.query(Movie).all()
+            inception_movies = [m for m in all_movies if 'inception' in m.title.lower()]
+            if inception_movies:
+                print(f"🔧 get_movies - Inception movies in DB: {[m.title for m in inception_movies]}")
+            else:
+                print("🔧 get_movies - No Inception movies found in DB")
             
             # Convert to dictionaries
             result = []

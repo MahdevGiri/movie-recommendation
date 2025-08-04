@@ -70,6 +70,7 @@ interface MovieFormData {
   title: string;
   genre: string;
   year: number;
+  rating: number;
   description: string;
   director: string;
   cast: string;
@@ -132,6 +133,7 @@ const Admin: React.FC = () => {
     title: '',
     genre: 'Drama',
     year: new Date().getFullYear(),
+    rating: 0,
     description: '',
     director: '',
     cast: '',
@@ -182,7 +184,7 @@ const Admin: React.FC = () => {
     e.preventDefault();
     
     try {
-      await api.post('/users', userFormData);
+              await api.post('/users', userFormData);
       toast.success('User created successfully!');
       
       setOpenUserDialog(false);
@@ -199,7 +201,7 @@ const Admin: React.FC = () => {
     }
 
     try {
-      await api.delete(`/users/${userId}`);
+              await api.delete(`/users/${userId}`);
       toast.success('User deleted successfully!');
       fetchUsers();
     } catch (error: any) {
@@ -239,11 +241,14 @@ const Admin: React.FC = () => {
   const fetchMovies = async () => {
     try {
       setMovieLoading(true);
+      console.log('Fetching movies from admin endpoint...');
       const response = await api.get('/admin/movies');
+      console.log('Movies response:', response.data);
       setMovies(response.data.movies);
+      console.log('Movies state updated:', response.data.movies);
     } catch (error: any) {
-      toast.error('Failed to fetch movies');
       console.error('Error fetching movies:', error);
+      toast.error('Failed to fetch movies');
     } finally {
       setMovieLoading(false);
     }
@@ -254,17 +259,30 @@ const Admin: React.FC = () => {
     
     try {
       if (editingMovie) {
-        await api.put(`/admin/movies/${editingMovie.id}`, movieFormData);
+        console.log('Updating movie:', editingMovie.id, 'with data:', movieFormData);
+        const response = await api.put(`/admin/movies/${editingMovie.id}`, movieFormData);
+        console.log('Update response:', response.data);
         toast.success('Movie updated successfully!');
+        
+        // Clear search and filter terms to ensure the updated movie shows up
+        setMovieSearchTerm('');
+        setSelectedMovieGenre('');
       } else {
-        await api.post('/admin/movies', movieFormData);
+        console.log('Creating new movie with data:', movieFormData);
+        const response = await api.post('/admin/movies', movieFormData);
+        console.log('Create response:', response.data);
         toast.success('Movie created successfully!');
       }
       
       setOpenMovieDialog(false);
       resetMovieForm();
-      fetchMovies();
+      
+      // Fetch updated movies list
+      await fetchMovies();
+      
+      console.log('Movies after update:', movies);
     } catch (error: any) {
+      console.error('Movie operation failed:', error);
       toast.error(error.response?.data?.error || 'Operation failed');
     }
   };
@@ -289,6 +307,7 @@ const Admin: React.FC = () => {
       title: movie.title,
       genre: movie.genre,
       year: movie.year,
+      rating: movie.rating || 0,
       description: movie.description || '',
       director: movie.director || '',
       cast: movie.cast || '',
@@ -304,6 +323,7 @@ const Admin: React.FC = () => {
       title: '',
       genre: 'Drama',
       year: new Date().getFullYear(),
+      rating: 0,
       description: '',
       director: '',
       cast: '',
@@ -316,7 +336,8 @@ const Admin: React.FC = () => {
     const { name, value } = e.target;
     setMovieFormData(prev => ({
       ...prev,
-      [name]: name === 'year' ? parseInt(value) || new Date().getFullYear() : value,
+      [name]: name === 'year' ? parseInt(value) || new Date().getFullYear() : 
+              name === 'rating' ? parseFloat(value) || 0 : value,
     }));
   };
 
@@ -344,6 +365,14 @@ const Admin: React.FC = () => {
     const matchesSearch = movie.title.toLowerCase().includes(movieSearchTerm.toLowerCase()) ||
                          (movie.director && movie.director.toLowerCase().includes(movieSearchTerm.toLowerCase()));
     const matchesGenre = !selectedMovieGenre || movie.genre === selectedMovieGenre;
+    
+    // Debug logging for movie filtering
+    if (movie.title.toLowerCase().includes('inception')) {
+      console.log('Inception movie found:', movie);
+      console.log('Search term:', movieSearchTerm, 'Matches search:', matchesSearch);
+      console.log('Selected genre:', selectedMovieGenre, 'Matches genre:', matchesGenre);
+    }
+    
     return matchesSearch && matchesGenre;
   });
 
@@ -538,17 +567,35 @@ const Admin: React.FC = () => {
           <Typography variant="h5" component="h2">
             Movie Management
           </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setOpenMovieDialog(true)}
-          >
-            Add Movie
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setMovieSearchTerm('');
+                setSelectedMovieGenre('');
+                fetchMovies();
+              }}
+            >
+              Refresh
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setOpenMovieDialog(true)}
+            >
+              Add Movie
+            </Button>
+          </Box>
         </Box>
 
         {/* Movie Search and Filter */}
         <Box sx={{ mb: 3 }}>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <Typography variant="body2">
+              💡 <strong>Tip:</strong> After updating a movie, use the "Refresh" button to see all movies. 
+              Search and filter terms are automatically cleared after updates to ensure you can see the updated movie.
+            </Typography>
+          </Alert>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
               <TextField
@@ -1084,6 +1131,41 @@ const Admin: React.FC = () => {
                     <MenuItem value="Documentary">Documentary</MenuItem>
                   </Select>
                 </FormControl>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Rating"
+                  name="rating"
+                  type="number"
+                  value={movieFormData.rating}
+                  onChange={handleMovieInputChange}
+                  margin="normal"
+                  inputProps={{ min: 0, max: 5, step: 0.1 }}
+                  placeholder="0.0"
+                  sx={{
+                    '& .MuiInputLabel-root': {
+                      color: 'text.primary',
+                      fontWeight: 'medium',
+                    },
+                    '& .MuiInputLabel-root.Mui-focused': {
+                      color: 'primary.main',
+                      fontWeight: 'bold',
+                    },
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: 'grey.400',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'primary.main',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: 'primary.main',
+                        borderWidth: 2,
+                      },
+                    },
+                  }}
+                />
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField

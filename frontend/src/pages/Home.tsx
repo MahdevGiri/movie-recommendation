@@ -7,7 +7,7 @@ const Home: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const features = [
+  const allFeatures = [
     {
       title: '🎬 Movie Recommendations',
       description: 'Get personalized movie suggestions based on your preferences and rating history.',
@@ -33,6 +33,11 @@ const Home: React.FC = () => {
       color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
     }
   ];
+
+  // Filter features based on user role
+  const features = user?.role === 'admin' 
+    ? allFeatures.filter(feature => feature.title === '📚 Browse Movies')
+    : allFeatures;
 
   return (
     <Container maxWidth="lg" sx={{ mt: { xs: 2, sm: 4 }, mb: 4 }}>
@@ -113,9 +118,22 @@ const Home: React.FC = () => {
       </Box>
 
       {/* Features Grid */}
-      <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mb: 4 }}>
+      <Grid 
+        container 
+        spacing={{ xs: 2, md: 3 }} 
+        sx={{ 
+          mb: 4,
+          justifyContent: user?.role === 'admin' ? 'center' : 'flex-start'
+        }}
+      >
         {features.map((feature, index) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
+          <Grid 
+            item 
+            xs={12} 
+            sm={user?.role === 'admin' ? 6 : 6} 
+            md={user?.role === 'admin' ? 4 : 4} 
+            key={index}
+          >
             <Card 
               sx={{ 
                 height: '100%',
@@ -225,7 +243,10 @@ const Home: React.FC = () => {
               textShadow: '0 1px 2px rgba(0,0,0,0.3)'
             }}
           >
-            Ready to discover more great movies? Check out your personalized recommendations or browse our collection.
+            {user.role === 'admin' 
+              ? 'As an admin, you can browse and manage the movie collection.'
+              : 'Ready to discover more great movies? Check out your personalized recommendations or browse our collection.'
+            }
           </Typography>
         </Box>
       )}

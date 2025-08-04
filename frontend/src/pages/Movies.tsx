@@ -3,6 +3,7 @@ import { Container, Typography, CircularProgress, Card, CardContent, Box, Button
 import Rating from '@mui/material/Rating';
 import api from '../services/api';
 import MovieImage from '../components/MovieImage';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Movie {
   id: number;
@@ -22,6 +23,7 @@ interface Pagination {
 }
 
 const Movies: React.FC = () => {
+  const { user } = useAuth();
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -212,8 +214,8 @@ const Movies: React.FC = () => {
                       }}>
                         <Rating
                           name={`rating-${movie.id}`}
-                          onChange={(_, value) => handleRate(movie.id, value)}
-                          disabled={ratingSubmitting === movie.id}
+                          onChange={user?.role !== 'admin' ? (_, value) => handleRate(movie.id, value) : undefined}
+                          disabled={ratingSubmitting === movie.id || user?.role === 'admin'}
                           size="small"
                           sx={{
                             '& .MuiRating-iconFilled': {
@@ -224,7 +226,7 @@ const Movies: React.FC = () => {
                             },
                           }}
                         />
-                        {ratingSubmitting === movie.id && (
+                        {ratingSubmitting === movie.id && user?.role !== 'admin' && (
                           <CircularProgress size={16} sx={{ ml: 1, color: '#2196F3' }} />
                         )}
                       </Box>
